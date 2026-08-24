@@ -9,7 +9,6 @@
         <div class="field-group">
             <div class="field-label">Visit date</div>
             <div class="field-value-row" id="visitDateDisplay"></div>
-            <div class="field-caption">Encounter date</div>
         </div>
 
         <!-- Date of last menstruation known? Yes/No -->

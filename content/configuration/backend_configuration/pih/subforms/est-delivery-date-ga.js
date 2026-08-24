@@ -4,12 +4,15 @@ jq(document).ready(function() {
 
     const yesValue = '<lookup expression="fn.getConcept('CIEL:1065').id"/>';
     const noValue = '<lookup expression="fn.getConcept('CIEL:1066').id"/>';
-    const encounterDate = '<lookup expression="encounter.getEncounterDatetime().getTime()"/>';
+    const encounterDate = '<lookup complexExpression="#if($encounter.encounterDatetime)$!{fn.formatDate($encounter.encounterDatetime, 'yyyy-MM-dd')}#end"/>';
+
     const gender = '<lookup expression="patient.gender"/>';
     var currentEncounterDate = new Date();
 
     if (typeof encounterDate !== "undefined" &amp;&amp; encounterDate !== null &amp;&amp; (encounterDate.length > 0)) {
-        currentEncounterDate = new Date(+encounterDate);
+        // encounter date should be in the format YYYY-MM-DD
+        const encounterDateTime = dateFromString(encounterDate);
+        currentEncounterDate = new Date(encounterDateTime.getFullYear(), encounterDateTime.getMonth(), encounterDateTime.getDate());
     } else {
         // look for the encounterDate datepicker widget
         var encounterDateValue = jq("#encounterDate .hasDatepicker");
