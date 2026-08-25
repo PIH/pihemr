@@ -37,8 +37,6 @@ body{
 }
 
 .field-label{
-    font-weight: 600;
-    font-size: 0.95rem;
     display: flex;
     align-items: center;
     gap: 8px;
@@ -74,8 +72,10 @@ body{
 }
 
 .field-value-row{
-    padding: 6px 0 10px 28px;
-    border-bottom: 1px solid var(--rule-strong);
+    padding-top: 6px;
+    padding-right: 0;
+    padding-left: 0 !important;
+    padding-bottom: 2px !important;
     font-size: 1.15rem;
 }
 
@@ -96,7 +96,7 @@ body{
     /* border: 2px solid transparent; */
     border-radius: 4px;
     padding: 10px 12px;
-    margin-left: 16px;
+    margin-left: 1px;
     transition: border-color .4s ease, background-color .4s ease;
 }
 
@@ -108,7 +108,7 @@ body{
 .field-caption{
     color: var(--caption);
     font-size: 0.85rem;
-    margin-top: 8px;
+    margin-top: 2px;
     padding-left: 2px;
 }
 
@@ -174,4 +174,27 @@ span#knowing_period_question input {
 /* Optional: Group radio + label text closer together */
 span#knowing_period_question input[type="radio"] {
     margin-right: 5px !important;
+}
+.horizontal-row {
+    display: flex;
+    gap: 16px; /* Adjust spacing as needed */
+    align-items: flex-start;
+}
+
+#calculatedEddGroup,
+#gaGroup {
+    flex: 1; /* Makes them share available space equally */
+    width: auto; /* Overrides the default 100% or fixed width */
+}
+
+#lastPeriodDateGroup,
+#eddGroup {
+    flex: 1; /* Makes them share available space equally */
+    width: auto; /* Overrides the default 100% or fixed width */
+}
+
+#estimatedGaGroup,
+#eddGroup {
+    flex-grow: 1;
+    flex-basis: 0;
 }
