@@ -27,8 +27,12 @@ jq(document).ready(function() {
         if ( lastLMP ) {
 
             const lastLMPrecordedDate = '<lookup complexExpression="#if($lmpObs)$!{fn.formatDate($lmpObs.obsDatetime, 'yyyy-MM-dd')}#end"/>';
-            const lastLMPformName = '<lookup complexExpression="#if($lmpObs)$!{lmpObs.encounter.form.name}#end"/>';
+            // Resolve the encounter name from the message properties (ui.i18n.EncounterType.name.&lt;form uuid&gt;),
+            // falling back to the form's own name when that uuid has no message configured.
+           <lookup complexExpression="#if($lmpObs)#set( $lmpFormNameCode = &quot;ui.i18n.EncounterType.name.${lmpObs.encounter.encounterType.uuid}&quot; )#set( $lmpFormName = $fn.message($lmpFormNameCode) )#if( $lmpFormName == $lmpFormNameCode )#set( $lmpFormName = $lmpObs.encounter.form.name )#end#end"/>
+            const lastLMPformName = '<lookup complexExpression="$!{lmpFormName}"/>';
             const lastLMPencLocation = '<lookup complexExpression="#if($lmpObs)$!{lmpObs.encounter.location.name}#end"/>';
+            const lastLMPproviders = '<lookup complexExpression="#if($lmpObs)#foreach( $encProvider in $lmpObs.encounter.activeEncounterProviders )#if( $velocityCount != 1 ), #end$!{encProvider.provider.name}#end#end"/>';
             const lastLMPDate = new Date(lastLMP);
             var daysBetween = daysBetweenUTCDates(currentEncounterDate, lastLMPDate);
             if (daysBetween &lt;= 305) {
@@ -39,6 +43,7 @@ jq(document).ready(function() {
                 jq("#lastLMPFormName").text(lastLMPformName);
                 jq("#lastLMPobsDateTime").text(lastLMPrecordedDate);
                 jq("#lastLMPencLocation").text(lastLMPencLocation);
+                jq("#lastLMPprovider").text(lastLMPproviders);
             }
         }
 
@@ -49,12 +54,18 @@ jq(document).ready(function() {
             if (lastGA) {
                 jq("#lastGACaption").removeClass("hidden");
                 const lastGArecordedDate = '<lookup complexExpression="#if($gaObs)$!{fn.formatDate($gaObs.obsDatetime, 'yyyy-MM-dd')}#end"/>';
-                const lastGAformName = '<lookup complexExpression="#if($gaObs)$!{gaObs.encounter.form.name}#end"/>';
+                // Resolve the encounter name from the message properties (ui.i18n.EncounterType.name.&lt;form uuid&gt;),
+                // falling back to the form's own name when that uuid has no message configured.
+                <lookup complexExpression="#if($gaObs)#set( $gaFormNameCode = &quot;ui.i18n.EncounterType.name.${gaObs.encounter.encounterType.uuid}&quot; )#set( $gaFormName = $fn.message($gaFormNameCode) )#if( $gaFormName == $gaFormNameCode )#set( $gaFormName = $gaObs.encounter.form.name )#end#end"/>
+                const lastGAformName = '<lookup complexExpression="$!{gaFormName}"/>';
                 const lastGAencLocation = '<lookup complexExpression="#if($gaObs)$!{gaObs.encounter.location.name}#end"/>';
+                // the providers on the encounter, as a comma-separated list of provider names
+                const lastGAproviders = '<lookup complexExpression="#if($gaObs)#foreach( $encProvider in $gaObs.encounter.activeEncounterProviders )#if( $velocityCount != 1 ), #end$!{encProvider.provider.name}#end#end"/>';
                 jq("#lastGAValue").text(lastGA);
                 jq("#lastGAFormName").text(lastGAformName);
                 jq("#lastGAobsDateTime").text(lastGArecordedDate);
                 jq("#lastGAencLocation").text(lastGAencLocation);
+                jq("#lastGAprovider").text(lastGAproviders);
             }
         }
 
@@ -63,8 +74,12 @@ jq(document).ready(function() {
             <lookup complexExpression="#set( $eddObs = $fn.latestObsBeforeCurrentEncounter('CIEL:5596', false) )"/>
             const lastEDD = '<lookup complexExpression="#if($eddObs)$!{fn.formatDate($eddObs.getValueDatetime(), 'yyyy-MM-dd')}#end"/>';
             const lastEnteredEDD = '<lookup complexExpression="#if($eddObs)$!{fn.formatDate($eddObs.obsDatetime, 'yyyy-MM-dd')}#end"/>';
-            const lastEDDformName = '<lookup complexExpression="#if($eddObs)$!{eddObs.encounter.form.name}#end"/>';
+            // Resolve the encounter name from the message properties (ui.i18n.EncounterType.name.&lt;form uuid&gt;),
+            // falling back to the form's own name when that uuid has no message configured.
+            <lookup complexExpression="#if($eddObs)#set( $eddFormNameCode = &quot;ui.i18n.EncounterType.name.${eddObs.encounter.encounterType.uuid}&quot; )#set( $eddFormName = $fn.message($eddFormNameCode) )#if( $eddFormName == $eddFormNameCode )#set( $eddFormName = $eddObs.encounter.form.name )#end#end"/>
+            const lastEDDformName = '<lookup complexExpression="$!{eddFormName}"/>';
             const lastEDDencLocation = '<lookup complexExpression="#if($eddObs)$!{eddObs.encounter.location.name}#end"/>';
+            const lastEDDproviders = '<lookup complexExpression="#if($eddObs)#foreach( $encProvider in $eddObs.encounter.activeEncounterProviders )#if( $velocityCount != 1 ), #end$!{encProvider.provider.name}#end#end"/>';
             if (lastEDD) {
                 // UHM-8643: Estimated Delivery Date should not be greater than 10 months from encounter date
                 const deliveryDate = dateFromString(lastEDD);
@@ -79,6 +94,7 @@ jq(document).ready(function() {
                             jq("#lastEDDFormName").text(lastEDDformName);
                             jq("#lastEDDobsDateTime").text(lastEnteredEDD);
                             jq("#lastEDDencLocation").text(lastEDDencLocation);
+                            jq("#lastEDDprovider").text(lastEDDproviders);
                         }
                     }
                 }

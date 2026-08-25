@@ -9,7 +9,6 @@
         <div class="field-group">
             <div class="field-label">Visit date</div>
             <div class="field-value-row" id="visitDateDisplay"></div>
-            <div class="field-caption">Encounter date</div>
         </div>
 
         <div class="field-group hidden" id="lastPeriodDateGroup">
@@ -22,7 +21,8 @@
             <div id="lastLMPCaption" class="field-caption hidden">
                 <span id="lastLMPFormName"></span>&nbsp;
                 <i class="icon-time small"></i><span id="lastLMPobsDateTime"></span>&nbsp;
-                <i class="icon-map-marker small"></i><span id="lastLMPencLocation"></span>
+                <i class="icon-map-marker small"></i><span id="lastLMPencLocation"></span>&nbsp;
+                <uimessage code="by"/>&nbsp;<span id="lastLMPprovider"></span>
             </div>
         </div>
 
@@ -38,7 +38,8 @@
                 <span id="lastGAValue"></span>&nbsp;weeks
                 <i class="icon-time small"></i><span id="lastGAobsDateTime"></span>&nbsp;
                 <span id="lastGAFormName"></span>&nbsp;
-                <i class="icon-map-marker small"></i><span id="lastGAencLocation"></span>
+                <i class="icon-map-marker small"></i><span id="lastGAencLocation"></span>&nbsp;
+                <uimessage code="by"/>&nbsp;<span id="lastGAprovider"></span>
             </div>
         </div>
 
@@ -54,7 +55,8 @@
                 <span id="lastEDDValue"></span>&nbsp;
                 <i class="icon-time small"></i><span id="lastEDDobsDateTime"></span>&nbsp;
                 <span id="lastEDDFormName"></span>&nbsp;
-                <i class="icon-map-marker small"></i><span id="lastEDDencLocation"></span>
+                <i class="icon-map-marker small"></i><span id="lastEDDencLocation"></span>&nbsp;
+                <uimessage code="by"/>&nbsp;<span id="lastEDDprovider"></span>
             </div>
         </div>
         <div class="field-group hidden" id="calculatedEddGroup">
