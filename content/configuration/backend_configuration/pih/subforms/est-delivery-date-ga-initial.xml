@@ -59,7 +59,7 @@
                     <uimessage code="pihcore.calculatedEstimatedDeliveryDate"/>:&#160;
                 </div>
                 <div class="field-value-row calculated value calculated-edd" id="calculated-edd"></div>
-                <span class="badge-calculated">Calculated</span>
+                <span class="badge-calculated"><uimessage code="pihcore.calculated"/></span>
                 <div class="field-caption">LMP + 280 days (Naegele's rule)</div>
             </div>
 
@@ -79,7 +79,7 @@
                     <uimessage code="pihcore.calculatedGestationalAge"/>:&#160;
                 </div>
                 <div class="field-value-row calculated value calculated-gestational-age-value" id="calculated-gestational-age-value"></div>
-                <span class="badge-calculated">Calculated</span>
+                <span class="badge-calculated"><uimessage code="pihcore.calculated"/></span>
                 <div class="field-caption">From LMP to visit date</div>
             </div>
         </div>
