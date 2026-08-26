@@ -57,9 +57,9 @@
             <div class="field-group hidden" id="calculatedEddGroup">
                 <div class="field-label">
                     <uimessage code="pihcore.calculatedEstimatedDeliveryDate"/>:&#160;
-                    <span class="badge-calculated">Calculated</span>
                 </div>
                 <div class="field-value-row calculated value calculated-edd" id="calculated-edd"></div>
+                <span class="badge-calculated">Calculated</span>
                 <div class="field-caption">LMP + 280 days (Naegele's rule)</div>
             </div>
 
@@ -77,9 +77,9 @@
             <div class="field-group hidden" id="gaGroup">
                 <div class="field-label">
                     <uimessage code="pihcore.calculatedGestationalAge"/>:&#160;
-                    <span class="badge-calculated">Calculated</span>
                 </div>
                 <div class="field-value-row calculated value calculated-gestational-age-value" id="calculated-gestational-age-value"></div>
+                <span class="badge-calculated">Calculated</span>
                 <div class="field-caption">From LMP to visit date</div>
             </div>
         </div>

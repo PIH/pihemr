@@ -26,37 +26,39 @@
             </div>
         </div>
 
-        <div class="field-group" id="estimatedGaGroup">
-            <div class="field-label">
-                <uimessage code="Estimated gestational age (weeks)"/>
+        <div class="horizontal-row">
+            <div class="field-group" id="estimatedGaGroup">
+                <div class="field-label">
+                    <uimessage code="Estimated gestational age (weeks)"/>
+                </div>
+                <div class="field-value-row value estimated-gestational-age-value" id="gestationalAge">
+                    <obs conceptId="CIEL:1438" showUnits="true" class="value-input" id="estimatedGestationalAge"/>
+                </div>
+                <div id="lastGACaption" class="field-caption hidden">
+                    <span id="lastGAText">Last recorded GA value: </span>
+                    <span id="lastGAValue"></span>&nbsp;weeks<br/>
+                    <i class="icon-time small"></i><span id="lastGAobsDateTime"></span>&nbsp;
+                    <span id="lastGAFormName"></span>&nbsp;
+                    <i class="icon-map-marker small"></i><span id="lastGAencLocation"></span>&nbsp;
+                    <uimessage code="by"/>&nbsp;<span id="lastGAprovider"></span>
+                </div>
             </div>
-            <div class="field-value-row value estimated-gestational-age-value" id="gestationalAge">
-                <obs conceptId="CIEL:1438" showUnits="true" class="value-input" id="estimatedGestationalAge"/>
-            </div>
-            <div id="lastGACaption" class="field-caption hidden">
-                <span id="lastGAText">Last recorded GA value: </span>
-                <span id="lastGAValue"></span>&nbsp;weeks
-                <i class="icon-time small"></i><span id="lastGAobsDateTime"></span>&nbsp;
-                <span id="lastGAFormName"></span>&nbsp;
-                <i class="icon-map-marker small"></i><span id="lastGAencLocation"></span>&nbsp;
-                <uimessage code="by"/>&nbsp;<span id="lastGAprovider"></span>
-            </div>
-        </div>
 
-        <div class="field-group" id="eddGroup">
-            <div class="field-label">
-                <uimessage code="pihcore.pregnancy.dueDate"/>
-            </div>
-            <div class="field-value-row value" id="estimatedEddDiv">
-                <obs id="edd" conceptId="CIEL:5596" allowFutureDates="true" allowPastDates="true" class="value-input"/>
-            </div>
-            <div id="lastEDDCaption" class="field-caption hidden">
-                <span id="lastEDDText">Last recorded EDD value: </span>
-                <span id="lastEDDValue"></span>&nbsp;
-                <i class="icon-time small"></i><span id="lastEDDobsDateTime"></span>&nbsp;
-                <span id="lastEDDFormName"></span>&nbsp;
-                <i class="icon-map-marker small"></i><span id="lastEDDencLocation"></span>&nbsp;
-                <uimessage code="by"/>&nbsp;<span id="lastEDDprovider"></span>
+            <div class="field-group" id="eddGroup">
+                <div class="field-label">
+                    <uimessage code="pihcore.pregnancy.dueDate"/>
+                </div>
+                <div class="field-value-row value" id="estimatedEddDiv">
+                    <obs id="edd" conceptId="CIEL:5596" allowFutureDates="true" allowPastDates="true" class="value-input"/>
+                </div>
+                <div id="lastEDDCaption" class="field-caption hidden">
+                    <span id="lastEDDText">Last recorded EDD value: </span>
+                    <span id="lastEDDValue"></span>&nbsp;<br/>
+                    <i class="icon-time small"></i><span id="lastEDDobsDateTime"></span>&nbsp;
+                    <span id="lastEDDFormName"></span>&nbsp;
+                    <i class="icon-map-marker small"></i><span id="lastEDDencLocation"></span>&nbsp;
+                    <uimessage code="by"/>&nbsp;<span id="lastEDDprovider"></span>
+                </div>
             </div>
         </div>
         <div class="field-group hidden" id="calculatedEddGroup">

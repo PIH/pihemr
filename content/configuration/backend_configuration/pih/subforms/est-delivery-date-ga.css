@@ -28,7 +28,7 @@ body{
 }
 
 .edd-div{
-    max-width: 720px;
+    max-width: 820px;
     margin-left: 10px;
 }
 
@@ -61,7 +61,7 @@ body{
 /* PIH's "Calculated" badge - tinted version of the brand teal used
    for confirm buttons in pihemr.css (.ncdButtonDark.confirm #3f746d) */
 .badge-calculated{
-    display: inline-block;
+    display: inline-block !important;
     font-size: 0.72rem;
     font-weight: 600;
     color: var(--teal-text);
@@ -69,6 +69,7 @@ body{
     padding: 3px 10px;
     border-radius: 999px;
     line-height: 1.4;
+    vertical-align: middle;
 }
 
 .field-value-row{
@@ -197,4 +198,11 @@ span#knowing_period_question input[type="radio"] {
 #eddGroup {
     flex-grow: 1;
     flex-basis: 0;
+}
+#calculated-edd,
+#calculated-gestational-age-value {
+    display: inline-block !important;
+    width: auto !important; /* Prevents it from taking 100% width */
+    vertical-align: middle;
+    margin-right: 8px; /* Adds space between the value and the badge */
 }
