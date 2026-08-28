@@ -804,13 +804,56 @@ angular.module("encounterTypeConfig", [])
 
         // checkIn
         encounterTypes["55a0d3ea-a4d7-4e88-8f01-5aceb2d3c61b"] = {
-            defaultState: "short",
-            shortTemplate: "templates/encounters/checkInShort.page",
-            longTemplate: "templates/encounters/defaultHtmlFormEncounterLong.page",
-            templateModelUrl: "/module/htmlformentry/encounter.json?encounter={{encounter.uuid}}",
-            icon: "fas fa-fw icon-check-in",
-            editUrl: hfeSimpleEditUrl,
-            showOnVisitList: false
+            DEFAULT: {
+                defaultState: "short",
+                shortTemplate: "templates/encounters/checkInShort.page",
+                longTemplate: "templates/encounters/defaultHtmlFormEncounterLong.page",
+                templateModelUrl: "/module/htmlformentry/encounter.json?encounter={{encounter.uuid}}",
+                icon: "fas fa-fw icon-check-in",
+                editUrl: hfeSimpleEditUrl,
+                showOnVisitList: false
+            },
+            "haiti": {
+                versions : {
+                    DEFAULT: {
+                        defaultState: "short",
+                        shortTemplate: "templates/encounters/checkInShort.page",
+                        longTemplate: "templates/encounters/defaultHtmlFormEncounterLong.page",
+                        templateModelUrl: "/module/htmlformentry/encounter.json?encounter={{encounter.uuid}}",
+                        icon: "fas fa-fw icon-check-in",
+                        editUrl: hfeStandardEditUrl,
+                        showOnVisitList: false
+                    },
+                    "3.0": {
+                        defaultState: "short",
+                        shortTemplate: "templates/encounters/checkInShort.page",
+                        longTemplate: "templates/encounters/defaultHtmlFormEncounterLong.page",
+                        templateModelUrl: "/module/htmlformentry/encounter.json?encounter={{encounter.uuid}}",
+                        icon: "fas fa-fw icon-check-in",
+                        editUrl: hfeSimpleEditUrl,
+                        showOnVisitList: false
+                    },
+                    "2.0": {
+                        defaultState: "short",
+                        shortTemplate: "templates/encounters/checkInShort.page",
+                        longTemplate: "templates/encounters/defaultHtmlFormEncounterLong.page",
+                        templateModelUrl: "/module/htmlformentry/encounter.json?encounter={{encounter.uuid}}",
+                        icon: "fas fa-fw icon-check-in",
+                        editUrl: hfeSimpleEditUrl,
+                        showOnVisitList: false
+                    },
+                    "1.1": {
+                        defaultState: "short",
+                        shortTemplate: "templates/encounters/checkInShort.page",
+                        longTemplate: "templates/encounters/defaultHtmlFormEncounterLong.page",
+                        templateModelUrl: "/module/htmlformentry/encounter.json?encounter={{encounter.uuid}}",
+                        icon: "fas fa-fw icon-check-in",
+                        editUrl: hfeSimpleEditUrl,
+                        showOnVisitList: false
+                    }
+                }
+
+            }
         };
 
         // Maternal checkIn (used for SL MCOE triage, but could be used beyond SL and MCOE)
