@@ -15,6 +15,7 @@ jobs:
     uses: PIH/openmrs-contrib-distro-tools/.github/workflows/build-and-deploy-to-openmrs-jfrog.yml@main
     with:
       image_name: partnersinhealth/pihemr
+      notify_ci_dashboard: true
     secrets: inherit
 
   trigger-downstream-builds:
