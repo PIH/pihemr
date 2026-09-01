@@ -1092,7 +1092,6 @@ angular.module("encounterTypeConfig", [])
                 primaryCareHistory,
                 generalVaccinations,
                 pedsFoodAndSupplements,
-                primaryCareExam,
                 primaryCareDx,
                 primaryCarePlan
             ]
@@ -1110,7 +1109,6 @@ angular.module("encounterTypeConfig", [])
                 chiefComplaint,
                 generalVaccinations,
                 pedsFoodAndSupplements,
-                primaryCareExam,
                 primaryCareDx,
                 primaryCarePlan
             ]
