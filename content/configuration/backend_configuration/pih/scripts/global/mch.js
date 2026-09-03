@@ -83,6 +83,7 @@ function setUpEdd(currentEncounterDate, msgWeeks) {
       }
 
       const gestAgeText = calculateGestationalDays(lastPeriodDate, currentEncounterDate, msgWeeks);
+      const gestAgeWithDecimals = displayGestationalAgeWithDecimals(lastPeriodDate, currentEncounterDate);
       const edd = calculateExpectedDeliveryDate(lastPeriodDate);
       const locale = (window.sessionContext && window.sessionContext.locale) || navigator.language;
       jq(".calculated-edd-and-gestational").show();
@@ -92,7 +93,7 @@ function setUpEdd(currentEncounterDate, msgWeeks) {
       }
       jq(".calculated-edd").text((Intl.DateTimeFormat(locale, { dateStyle: "medium" })).format(edd));
       if (!preserveExistingGestAge && getField("gestationalAge.value")) {
-        getField("gestationalAge.value").val(gestAgeText);
+        getField("gestationalAge.value").val(gestAgeWithDecimals);
       }
       jq(".calculated-gestational-age-value").text(gestAgeText);
     } else {
@@ -174,6 +175,15 @@ function calculateGestationalDays(lastPeriodDate, currentEncounterDate, msgWeeks
       " " +
       (gestAgeRemainderDays ? gestAgeRemainderDays + "/7 " : " ") +
       msgWeeks;
+}
+
+function displayGestationalAgeWithDecimals(lastPeriodDate, currentEncounterDate) {
+    const today = currentEncounterDate ? new Date(+currentEncounterDate) : new Date();
+    const gestAgeMs = today.getTime() - lastPeriodDate.getTime();
+    const gestAgeDays = Math.floor(gestAgeMs / (1000 * 3600 * 24))
+    const gestAgeWeeks = Math.floor(gestAgeDays / 7);
+    const gestAgeRemainderDays = gestAgeDays % 7;
+    return gestAgeWeeks + (gestAgeRemainderDays ? gestAgeRemainderDays / 10 : 0);
 }
 
 /**
