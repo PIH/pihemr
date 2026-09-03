@@ -111,7 +111,8 @@
         "order": [
           "home-widget-db-link",
           "queue-table-by-status-menu-dashboard-link",
-          "clinical-appointments-dashboard-link"
+          "clinical-appointments-dashboard-link",
+          "audit-dashboard-link"
         ]
       }
     },
