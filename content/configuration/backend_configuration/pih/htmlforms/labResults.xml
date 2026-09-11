@@ -197,7 +197,7 @@
                 </label>
                 <div class="small">
                     <field class="required">
-                        <obs id="test-date" conceptId="PIH:Date of test results"  required="true"/>
+                        <obs id="test-date" conceptId="PIH:Date of test results"  required="true" allowFutureDates="true"/>
                     </field>
                 </div>
             </div>
