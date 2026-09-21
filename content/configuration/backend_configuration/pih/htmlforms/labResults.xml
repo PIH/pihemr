@@ -1068,8 +1068,8 @@
                     <field>
                     <obs id="hiv-test-reason" style="radio"
                          conceptId="CIEL:164126"
-                         answerConceptIds="CIEL:166058,CIEL:166059"
-                         answerCodes="pihcore.routine,pihcore.targeted" />
+                         answerConceptIds="PIH:20671,CIEL:166058,CIEL:167388,CIEL:166059"
+                         answerCodes="pihcore.baseline.test,pihcore.routine,pihcore.confirmation.test,pihcore.targeted" />
                     </field>
                 </div>
             </obsgroup>
