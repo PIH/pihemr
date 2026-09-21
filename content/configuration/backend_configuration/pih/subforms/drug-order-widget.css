@@ -32,3 +32,268 @@
 .order-field-widget {
     display: inline-block;
 }
+
+/* ==========================================================================
+   Section headers ("Commandes actives" / "Nouvelles commandes")
+   ========================================================================== */
+
+.orderwidget-section-header {
+    font-size: 16px;
+    font-weight: 700;
+    color: #003F5E;
+    padding-top: 0px;
+    padding-bottom: 6px;
+}
+
+.orderwidget-existing-order-section,
+.orderwidget-new-order-section {
+    margin-bottom: 20px;
+}
+
+.orderwidget-section-no-orders {
+    color: #7a838c;
+    font-size: 13px;
+    font-style: italic;
+}
+
+.orderwidget-orderable-section {
+    border-bottom: none;
+    padding: 0px;
+}
+
+.orderwidget-existing-order-section .orderwidget-orderable-section {
+    border-bottom: 1px solid #e5e8eb;
+    padding-bottom: 10px;
+    margin-bottom: 10px;
+}
+
+/* ==========================================================================
+   New / edit order form card
+   ========================================================================== */
+
+.orderwidget-order-form {
+    display: block;
+    background: #ffffff;
+    border: 1px solid #e2e6ea;
+    border-radius: 10px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    padding: 18px 20px;
+    margin: 0px 0px 10px 0px;
+}
+
+.orderwidget-order-form .order-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 14px;
+}
+
+.orderwidget-order-form .order-row:last-of-type {
+    margin-bottom: 0px;
+}
+
+.orderwidget-order-form .order-row-full {
+    display: block;
+    margin-bottom: 14px;
+}
+
+/* Fields laid out as label-above-widget within a row */
+.orderwidget-order-form .order-row .order-field {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 130px;
+    min-width: 110px;
+    padding: 0px;
+    margin: 0px;
+}
+
+.orderwidget-order-form .order-row-full .order-field {
+    display: block;
+    width: 100%;
+    padding: 0px;
+    margin: 0px;
+}
+
+.orderwidget-order-form .order-field-label {
+    display: block;
+    min-height: 16px;
+    line-height: 16px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #5b6570;
+    padding-right: 0px;
+    margin-bottom: 4px;
+}
+
+.orderwidget-order-form .order-field-label:after {
+    content: "";
+}
+
+.orderwidget-order-form .order-field-widget {
+    display: block;
+}
+
+.orderwidget-order-form .order-field-widget input[type="text"],
+.orderwidget-order-form .order-field-widget input[type="number"],
+.orderwidget-order-form .order-field-widget select,
+.orderwidget-order-form .order-field-widget textarea {
+    width: 100%;
+    box-sizing: border-box;
+    height: 38px;
+    padding: 8px 10px;
+    border: 1px solid #d3d8dd;
+    border-radius: 8px;
+    font-size: 14px;
+    background: #ffffff;
+    vertical-align: top;
+}
+
+.orderwidget-order-form .order-field-widget textarea {
+    height: auto;
+}
+
+.orderwidget-order-form .order-field-widget input[type="text"]:focus,
+.orderwidget-order-form .order-field-widget input[type="number"]:focus,
+.orderwidget-order-form .order-field-widget select:focus,
+.orderwidget-order-form .order-field-widget textarea:focus {
+    outline: none;
+    border-color: #003F5E;
+    box-shadow: 0 0 0 3px rgba(0,63,94,0.15);
+}
+
+/* The autocomplete textbox gets an inline px width from orderWidget.js, and
+   the base htmlformentry module's own CSS caps it at max-width:600px;
+   !important on both is needed to make it fill the row instead */
+.orderwidget-order-form .orderwidget-autocomplete-textbox {
+    width: 100% !important;
+    max-width: none !important;
+    box-sizing: border-box;
+    height: 38px;
+    padding: 8px 10px;
+    border: 1px solid #d3d8dd;
+    border-radius: 8px;
+    font-size: 14px;
+}
+
+/* Lay the autocomplete textbox out alongside its "clear" button so the
+   textbox can be full width without the button wrapping underneath it */
+.orderwidget-order-form .order-row-full .order-field-widget {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.orderwidget-order-form .order-row-full .order-field-widget .orderwidget-autocomplete-textbox {
+    flex: 1 1 auto;
+    min-width: 0px;
+}
+
+.orderwidget-order-form .order-row-full .order-field-widget .custom-button {
+    flex: 0 0 auto;
+}
+
+.orderwidget-order-form .order-dateActivated .value {
+    display: inline-block;
+    padding: 8px 0px;
+    font-size: 14px;
+    color: #1f2d3d;
+}
+
+.orderwidget-order-form .calculated-quantity-section {
+    display: inline-block;
+    margin-top: 4px;
+}
+
+.orderwidget-order-form .calculated-quantity-button {
+    padding: 7px 14px;
+    border-radius: 8px;
+    border: 1px solid #d3d8dd;
+    background: #f5f7f8;
+    color: #1f2d3d;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.orderwidget-order-form .calculated-quantity-button:hover {
+    background: #eceff1;
+}
+
+.order-action-warnings {
+    padding: 10px 12px;
+    margin-bottom: 14px;
+    font-weight: 600;
+    color: #a33a3a;
+    background: #fbeaea;
+    border-radius: 8px;
+}
+
+/* ==========================================================================
+   Buttons
+   ========================================================================== */
+
+.order-action-button {
+    background: #ffffff;
+    background-image: none;
+    border: 1px solid #d3d8dd;
+    border-radius: 8px;
+    padding: 9px 18px;
+    display: inline-block;
+    line-height: 1.2em;
+    color: #003F5E;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    box-shadow: none;
+}
+
+.order-action-button:hover {
+    background: #f3f5f7;
+    border-color: #c3c9ce;
+}
+
+.order-action-button:active {
+    box-shadow: none;
+}
+
+/* Space out the Revise/Renew/Discontinue buttons shown for an existing order */
+.order-action-buttons .order-action-button {
+    margin-right: 8px;
+}
+
+.order-action-buttons .order-action-button:last-child {
+    margin-right: 0px;
+}
+
+/* The trigger button that starts a brand new order ("Nouvelle commande") */
+.orderwidget-selector-section {
+    margin: 10px 0px 0px 0px;
+    text-align: right;
+}
+
+.orderwidget-selector-section > .order-action-button {
+    background: #003F5E;
+    border-color: #003F5E;
+    color: #ffffff;
+}
+
+.orderwidget-selector-section > .order-action-button:hover {
+    background: #002c42;
+    border-color: #002c42;
+}
+
+/* The cancel button appended inside an open order form ("Annuler les changements") */
+.order-cancel-action-section {
+    margin-top: 14px;
+    text-align: right;
+}
+
+.order-cancel-action-section .order-action-button {
+    background: #ffffff;
+    border-color: #d3d8dd;
+    color: #5b6570;
+}
+
+.order-cancel-action-section .order-action-button:hover {
+    background: #f3f5f7;
+}

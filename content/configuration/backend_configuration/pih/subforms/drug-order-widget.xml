@@ -13,11 +13,11 @@
                 <option value="DISCONTINUE" label="pihcore.discontinue"/>
             </orderProperty>
 
-            <div style="padding:0px;font-weight:bold;">
+            <div class="order-row order-row-full">
                 <orderProperty name="drug" label="pihcore.visitNote.plan.medication" style="autocomplete" subform-parameter="drug-order-drug-selector"/>
             </div>
 
-            <div style="padding:0px;font-weight:bold;">
+            <div class="order-row">
                 <orderProperty name="dose" label="pihcore.visitNote.plan.dose"/>
                 <orderProperty name="doseUnits" value="1513AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" label=" " subform-parameter="drug-order-doseUnits-selector"/>
                 <orderProperty name="frequency" label=" " subform-parameter="drug-order-frequency-selector"/>
@@ -36,7 +36,7 @@
                     <option value="CIEL:162392" label="Intra-vaginal" /> <!-- Vaginal -->
                 </orderProperty>
             </div>
-            <div style="padding:0px;">
+            <div class="order-row">
                 <orderProperty name="dateActivated" label="pihcore.starting"/>
                 <orderProperty name="duration" label="pihcore.visitNote.for"/>
                 <orderProperty name="durationUnits" value="3cd706b8-26fe-102b-80cb-0017a47871b2" label=" "/>
@@ -45,7 +45,7 @@
                     <button class="calculated-quantity-button">Calculate Quantity</button>
                 </span>
             </div>
-            <div style="padding:0px;">
+            <div class="order-row">
                 <orderProperty name="quantity" label="pihcore.quantity"/>
                 <orderProperty name="quantityUnits" value="1513AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" label=" " subform-parameter="drug-order-quantityUnits-selector"/>
                 <orderProperty name="numRefills" value="0" label="pihcore.refills"/>
