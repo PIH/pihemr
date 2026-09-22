@@ -20,9 +20,10 @@ Colors / class names (.value, .field-error, .two-columns, teal #3f746d,
 
 * { box-sizing: border-box; }
 
-body{
+body {
     margin: 0;
     background: var(--page-bg);
+}
 
 .edd-div{
     max-width: 920px;
@@ -202,4 +203,4 @@ span#knowing_period_question input[type="radio"] {
     width: auto !important; /* Prevents it from taking 100% width */
     vertical-align: middle;
     margin-right: 8px; /* Adds space between the value and the badge */
-} 
+}
