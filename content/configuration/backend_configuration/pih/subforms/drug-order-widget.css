@@ -201,12 +201,18 @@
 }
 
 .orderwidget-order-form .calculated-quantity-section {
-    display: inline-block;
-    margin-top: 4px;
+    display: flex;
+    align-items: center;
+    /* No label sits above this button, so push it down to clear the label
+       row height (min-height 16px + margin-bottom 4px) above the other
+       fields in this row, then center it against their 38px-tall inputs */
+    margin-top: 20px;
+    height: 38px;
 }
 
 .orderwidget-order-form .calculated-quantity-button {
-    padding: 7px 14px;
+    height: 38px;
+    padding: 0px 14px;
     border-radius: 8px;
     border: 1px solid #d3d8dd;
     background: #f5f7f8;
