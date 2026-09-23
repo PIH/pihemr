@@ -54,6 +54,9 @@ body {
     display: inline-block;
     vertical-align: middle;
     margin-left: 20px; /* Adjust the value for more or less space */
+    font-weight: normal;
+    color: #003F5E;
+    font-size: 12px;
 }
 
 /* PIH's "Calculated" badge - tinted version of the brand teal used
