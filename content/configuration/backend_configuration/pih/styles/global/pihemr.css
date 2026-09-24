@@ -174,7 +174,7 @@ textarea {
     width: 420px;
 }
 
-.six-columns, .five-columns, .four-columns, .three-columns, .two-columns {
+.eight-columns, .six-columns, .five-columns, .four-columns, .three-columns, .two-columns {
     display: table;
     height: 100%;
     width: 100%;
@@ -203,6 +203,11 @@ textarea {
 .six-columns > div {
     display: table-cell;
     width: 16.6%;
+}
+
+.eight-columns > div {
+    display: table-cell;
+    width: 12.5%; /* 100% / 8 =12.5% */
 }
 
 .two-column-without-divs, .two-columns-without-divs {
