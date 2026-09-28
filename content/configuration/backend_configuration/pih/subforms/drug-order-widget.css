@@ -10,6 +10,18 @@
     white-space: pre;
 }
 
+/* Order detail text (drug, dose, starting, quantity...) shown in Active
+   Orders. The color override targets .order-view-different-encounter
+   directly since that's where the base module CSS sets color:grey, which
+   would otherwise win over a color set only on the ancestor. */
+.orderwidget-history-section {
+    font-weight: 700;
+}
+
+.orderwidget-history-section .order-view-different-encounter {
+    color: #00473f;
+}
+
 .order-field {
     display: inline-block;
     padding: 0px;
@@ -40,7 +52,7 @@
 .orderwidget-section-header {
     font-size: 16px;
     font-weight: 700;
-    color: #003F5E;
+    color: #00473f;
     padding-top: 0px;
     padding-bottom: 6px;
 }
@@ -189,8 +201,28 @@
     min-width: 0px;
 }
 
+/* The clear button's text is now set from the translated #clear-button-label
+   span by setupDrugOrderQuantityCalculations.js, so this just styles the
+   real (localized) text as a proper button instead of a bare glyph */
 .orderwidget-order-form .order-row-full .order-field-widget .custom-button {
     flex: 0 0 auto;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: normal;
+    height: 38px;
+    padding: 0px 14px;
+    border-radius: 8px;
+    border: 1px solid #dddddd;
+    background: linear-gradient(to bottom, #ffffff, #dddddd);
+    color: #003F5E;
+    box-shadow: none;
+    display: flex;
+    align-items: center;
+}
+
+.orderwidget-order-form .order-row-full .order-field-widget .custom-button:hover {
+    background: linear-gradient(to bottom, #f5f5f5, #d0d0d0);
+    border-color: #cccccc;
 }
 
 .orderwidget-order-form .order-dateActivated .value {
@@ -262,36 +294,112 @@
     box-shadow: none;
 }
 
-/* Space out the Revise/Renew/Discontinue buttons shown for an existing order */
+/* Space out the Revise/Renew/Discontinue (or Edit/Delete) buttons shown
+   for an order, and style them as icon pills: neutral for Renew/Revise/
+   Edit, red for the destructive Discontinue/Delete action. These buttons
+   are matched by the id orderWidget.js gives them ("order-action-button-
+   RENEW...", "-REVISE...", "-DISCONTINUE..."), which stays the same
+   regardless of the label shown (Discontinue vs. Delete use the same id
+   prefix, so both get the same icon here). */
+/* Base module CSS floats these buttons with no wrap allowance, which is
+   what let them overhang narrow/tablet widths; flex-wrap lets them drop
+   to a second line instead of overflowing the card */
+.order-action-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
 .order-action-buttons .order-action-button {
-    margin-right: 8px;
-}
-
-.order-action-buttons .order-action-button:last-child {
+    float: none;
     margin-right: 0px;
+    border-radius: 0px;
+    background: #dddddd;
+    border-color: #dddddd;
+    color: #1f2d3d;
+    font-weight: normal;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
 }
 
-/* The trigger button that starts a brand new order ("Nouvelle commande") */
+.order-action-buttons .order-action-button:hover {
+    background: #e2e5e9;
+    border-color: #e2e5e9;
+}
+
+.order-action-buttons .order-action-button::before {
+    font-family: "FontAwesome";
+    font-weight: normal;
+    font-style: normal;
+    margin-right: 6px;
+}
+
+.order-action-buttons [id^="order-action-button-RENEW"]::before {
+    content: "\f021";
+}
+
+.order-action-buttons [id^="order-action-button-REVISE"]::before {
+    content: "\f040";
+}
+
+.order-action-buttons [id^="order-action-button-DISCONTINUE"]::before {
+    content: "\f05e";
+}
+
+/* When the order being discontinued was placed in the current encounter,
+   orderWidget.js relabels the button "Delete" instead of "Discontinue" -
+   give it the trash icon to match. isOrderInCurrentEncounter is what
+   drives that relabeling, and it's also what tags the order's own history
+   row with "order-view-current-encounter", so that sibling class reliably
+   tells the two cases apart even though both buttons share the same id
+   prefix. Requires :has() (Chrome 105+/Safari 15.4+/Firefox 121+). */
+.orderwidget-orderable-section:has(.order-view-current-encounter) .order-action-buttons [id^="order-action-button-DISCONTINUE"]::before {
+    content: "\f014";
+}
+
+.order-action-buttons [id^="order-action-button-DISCONTINUE"] {
+    background: #ff3d3d;
+    border-color: #ff3d3d;
+    color: #ffffff;
+}
+
+.order-action-buttons [id^="order-action-button-DISCONTINUE"]:hover {
+    background: #ff2424;
+    border-color: #ff2424;
+}
+
+/* The trigger button that starts a brand new order ("Nouvelle commande").
+   Left-aligned, like the cancel button below, so it doesn't read as a
+   Save action sitting on the right */
 .orderwidget-selector-section {
     margin: 10px 0px 0px 0px;
-    text-align: right;
+    text-align: left;
 }
 
 .orderwidget-selector-section > .order-action-button {
-    background: #003F5E;
-    border-color: #003F5E;
+    background: #323372;
+    border-color: #323372;
     color: #ffffff;
 }
 
 .orderwidget-selector-section > .order-action-button:hover {
-    background: #002c42;
-    border-color: #002c42;
+    background: #28285b;
+    border-color: #28285b;
 }
 
-/* The cancel button appended inside an open order form ("Annuler les changements") */
+.orderwidget-selector-section > .order-action-button::before {
+    font-family: "FontAwesome";
+    font-weight: normal;
+    font-style: normal;
+    margin-right: 6px;
+    content: "\f067";
+}
+
+/* The cancel button appended inside an open order form ("Annuler les changements").
+   Left-aligned to match the rest of the EMR, where Cancel always sits
+   bottom-left */
 .order-cancel-action-section {
     margin-top: 14px;
-    text-align: right;
+    text-align: left;
 }
 
 .order-cancel-action-section .order-action-button {
@@ -302,4 +410,39 @@
 
 .order-cancel-action-section .order-action-button:hover {
     background: #f3f5f7;
+}
+
+.order-cancel-action-section .order-action-button::before {
+    font-family: "FontAwesome";
+    font-weight: normal;
+    font-style: normal;
+    margin-right: 6px;
+    content: "\f00d";
+}
+
+/* ==========================================================================
+   Tablet / narrow screens — reflow rows to 2 fields, then 1, so dropdowns
+   have room instead of getting crowded and overhanging the card
+   ========================================================================== */
+
+@media (max-width: 820px) {
+    .orderwidget-order-form .order-row .order-field {
+        flex: 1 1 45%;
+        min-width: 160px;
+    }
+}
+
+@media (max-width: 480px) {
+    .orderwidget-order-form .order-row .order-field {
+        flex: 1 1 100%;
+    }
+    .orderwidget-order-form {
+        padding: 14px;
+    }
+    .order-action-buttons .order-action-button,
+    .order-cancel-action-section .order-action-button,
+    .orderwidget-selector-section > .order-action-button {
+        padding: 8px 12px;
+        font-size: 13px;
+    }
 }

@@ -7,7 +7,7 @@
     <drugOrder format="select" selectLabel="pihcore.drugOrder.addAnotherDrug" onLoadFunction="initializeOrderWidgetAndSetupDrugOrderQuantityCalculations">
         <orderTemplate>
             <orderProperty name="action" label="pihcore.action">
-                <option value="NEW" label="pihcore.new"/>
+                <option value="NEW" label="pihcore.addMedication"/>
                 <option value="REVISE" label="pihcore.revise"/>
                 <option value="RENEW" label="pihcore.renew"/>
                 <option value="DISCONTINUE" label="pihcore.discontinue"/>
@@ -72,4 +72,5 @@
         </orderTemplate>
     </drugOrder>
     <span id="calculated-quantity-label" style="display:none;"><uimessage code="pihcore.calculateQuantity"/></span>
+    <span id="clear-button-label" style="display:none;"><uimessage code="pihcore.clearSearch"/></span>
 </div>

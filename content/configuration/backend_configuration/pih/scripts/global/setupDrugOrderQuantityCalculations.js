@@ -26,6 +26,23 @@ function setupDrugOrderQuantityCalculations(config) {
     // Apply translations
     jq(".calculated-quantity-button").html(jq("#calculated-quantity-label").html());
 
+    // Unlike the calculated-quantity-button, the drug search's "clear" button
+    // (.custom-button) isn't part of the static order template - orderWidget.js
+    // builds it dynamically each time a new order entry form is opened (see
+    // convertToAutocomplete), which happens after this function's one-time
+    // pass runs. Watch for it being added and translate it the moment it
+    // appears, instead of only translating whatever already exists now.
+    const $widgetField = jq("#" + config.fieldName);
+    const clearButtonLabel = jq("#clear-button-label").html();
+    $widgetField.find(".custom-button").html(clearButtonLabel);
+    if ($widgetField.length && window.MutationObserver) {
+        new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+                jq(mutation.addedNodes).find(".custom-button").addBack(".custom-button").html(clearButtonLabel);
+            });
+        }).observe($widgetField[0], { childList: true, subtree: true });
+    }
+
     jq("#" + config.fieldName).find(".calculated-quantity-section").hide();
     jq("#" + config.fieldName).find(".calculated-quantity-value").val("");
 
