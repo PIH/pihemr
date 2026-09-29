@@ -403,13 +403,14 @@
 }
 
 .order-cancel-action-section .order-action-button {
-    background: #ffffff;
-    border-color: #d3d8dd;
-    color: #5b6570;
+    background: linear-gradient(to bottom, #ffffff, #dddddd);
+    border: 1px solid #dddddd;
+    color: #003F5E;
 }
 
 .order-cancel-action-section .order-action-button:hover {
-    background: #f3f5f7;
+    background: linear-gradient(to bottom, #f5f5f5, #d0d0d0);
+    border-color: #cccccc;
 }
 
 .order-cancel-action-section .order-action-button::before {
