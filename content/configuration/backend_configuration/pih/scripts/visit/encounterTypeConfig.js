@@ -837,13 +837,38 @@ angular.module("encounterTypeConfig", [])
 
         // vitals
         encounterTypes["4fb47712-34a6-40d2-8ed3-e153abbd25b7"] = {
-            defaultState: "short",
-            shortTemplate: "templates/encounters/vitalsShort.page",
-            longTemplate: "templates/encounters/viewEncounterWithHtmlFormLong.page",
-            templateModelUrl: "/htmlformentryui/htmlform/viewEncounterWithHtmlForm/getAsHtml.action?encounterId={{encounter.uuid}}",
-            icon: "fas fa-fw fa-heartbeat",
-            editUrl: hfeSimpleEditUrl,
-            showOnVisitList: true
+            DEFAULT: {
+                defaultState: "short",
+                shortTemplate: "templates/encounters/vitalsShort.page",
+                longTemplate: "templates/encounters/viewEncounterWithHtmlFormLong.page",
+                templateModelUrl: "/htmlformentryui/htmlform/viewEncounterWithHtmlForm/getAsHtml.action?encounterId={{encounter.uuid}}",
+                icon: "fas fa-fw fa-heartbeat",
+                editUrl: hfeSimpleEditUrl,
+                showOnVisitList: true
+            },
+            "haiti": {
+                versions: {
+                    DEFAULT: {
+                        defaultState: "short",
+                        shortTemplate: "templates/encounters/vitalsShort.page",
+                        longTemplate: "templates/encounters/viewEncounterWithHtmlFormLong.page",
+                        templateModelUrl: "/htmlformentryui/htmlform/viewEncounterWithHtmlForm/getAsHtml.action?encounterId={{encounter.uuid}}",
+                        icon: "fas fa-fw fa-heartbeat",
+                        editUrl: hfeStandardEditUrl,
+                        showOnVisitList: true
+                    },
+                    "2.2": {
+                        defaultState: "short",
+                        shortTemplate: "templates/encounters/vitalsShort.page",
+                        longTemplate: "templates/encounters/viewEncounterWithHtmlFormLong.page",
+                        templateModelUrl: "/htmlformentryui/htmlform/viewEncounterWithHtmlForm/getAsHtml.action?encounterId={{encounter.uuid}}",
+                        icon: "fas fa-fw fa-heartbeat",
+                        editUrl: hfeSimpleEditUrl,
+                        showOnVisitList: true
+                    }
+                }
+            }
+
         };
 
         // MCOE Family Planning Intake and Followup
