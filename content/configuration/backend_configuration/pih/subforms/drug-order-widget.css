@@ -73,8 +73,9 @@
     padding: 0px;
 }
 
-.orderwidget-existing-order-section .orderwidget-orderable-section {
-    border-bottom: 1px solid #e5e8eb;
+.orderwidget-existing-order-section .orderwidget-orderable-section,
+.orderwidget-new-order-section .orderwidget-orderable-section {
+    border-bottom: 1px dotted black;
     padding-bottom: 10px;
     margin-bottom: 10px;
 }
