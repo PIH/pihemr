@@ -2,4 +2,4 @@ Uuid,Void/Retire,Name,Description,Java class name,Parent
 ${orderType.drugOrder.uuid},,Drug Order,An order for a medication to be given to the patient,org.openmrs.DrugOrder,
 ${orderType.testOrder.uuid},,Test Order,Order type for test orders,org.openmrs.TestOrder,
 ${orderType.pathologyTestOrder.uuid},,Pathology Test Order,A pathology test order,org.openmrs.TestOrder,${orderType.testOrder.uuid}
-${orderType.radiologyTestOrder.uuid},,Radiology Test Order,A radiology test order,org.openmrs.module.radiologyapp.RadiologyOrder,${orderType.testOrder.uuid}
+${orderType.radiologyTestOrder.uuid},,Radiology Test Order,A radiology test order,org.openmrs.TestOrder,${orderType.testOrder.uuid}
