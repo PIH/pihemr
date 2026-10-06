@@ -307,6 +307,13 @@
             <value>3ceb96b4-26fe-102b-80cb-0017a47871b2</value>
         </globalProperty>
 
+        <!-- OWA -->
+        <!-- leave users who are not logged in to the authentication module, which sends them to login and back -->
+        <globalProperty>
+            <property>owa.redirectToLoginUrl</property>
+            <value>false</value>
+        </globalProperty>
+
         <!-- Order Entry OWA -->
         <!-- TODO: do we still need order.encounterType and order.encounterRole? -->
         <!-- orderentryowa.labOrderablesConceptSet set in country-specific GP packages -->
