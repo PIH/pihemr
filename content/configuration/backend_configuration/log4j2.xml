@@ -22,10 +22,18 @@
 		<Memory name="MEMORY_APPENDER" bufferSize="200"> <!-- bufferSize is how many messages are kept in memory -->
 			<PatternLayout pattern="${defaultPattern}" />
 		</Memory>
-		<!-- File appender - keeps an active openmrs.log in the application data directory. -->
-		<File name="OPENMRS FILE APPENDER" fileName="${openmrs:applicationDirectory}/openmrs.log" append="true">
+		<!-- File appender - keeps an active openmrs.log in the application data directory, rolled over at 10 MB with 7
+		     compressed files kept (as legacy servers' logrotate does), so it can't fill a Docker instance's data volume. -->
+		<RollingFile name="OPENMRS FILE APPENDER"
+		             fileName="${openmrs:applicationDirectory}/openmrs.log"
+		             append="true"
+		             filePattern="${openmrs:applicationDirectory}/openmrs.%i.log.gz">
 			<PatternLayout pattern="${defaultPattern}" />
-		</File>
+			<Policies>
+				<SizeBasedTriggeringPolicy size="10 MB" />
+			</Policies>
+			<DefaultRolloverStrategy max="7" />
+		</RollingFile>
 		<!-- Logging of user session and authentication events to the database. -->
 		<JDBC name="AUTHENTICATION_EVENT_LOG" tableName="authentication_event_log">
 			<ConnectionFactory class="org.openmrs.api.context.Context" method="getDatabaseConnection" />
