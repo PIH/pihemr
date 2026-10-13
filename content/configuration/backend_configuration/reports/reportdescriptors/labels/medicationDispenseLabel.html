@@ -15,6 +15,7 @@
         font-family: Arial, Helvetica, sans-serif;
         font-size: 7.5pt;
         color: black;
+        line-height: 1.1;
     }
     .header {
         border-bottom: 1px solid darkgray;
@@ -27,8 +28,8 @@
         color: dimgray;
     }
     .section {
-        margin-bottom: 2pt;
-        padding-bottom: 2pt;
+        margin-bottom: 1.5pt;
+        padding-bottom: 1.5pt;
         border-bottom: 1px solid gainsboro;
     }
     .section:last-child {
@@ -67,7 +68,7 @@
     }
     .quantity-cell {
         display: table-cell;
-        width: 50%;
+        width: 33%;
         vertical-align: top;
     }
     .instructions-box {
@@ -77,43 +78,127 @@
         font-size: 6.5pt;
         min-height: 12pt;
     }
+    .instructions-box.sm {
+        font-size: 6pt;
+    }
+    .instructions-box.xs {
+        font-size: 5.5pt;
+    }
+    .instructions-box.xxs {
+        font-size: 5pt;
+    }
+    .instructions-box.xxxs {
+        font-size: 4.5pt;
+    }
+    .label-row {
+        display: table;
+        width: 100%;
+    }
+    .label-row > div {
+        display: table-cell;
+    }
+    .side-effects {
+        text-align: right;
+        font-size: 5pt;
+        font-weight: bold;
+        text-transform: uppercase;
+        color: black;
+    }
     .footer {
+        display: table;
+        width: 100%;
         margin-top: 2pt;
         font-size: 6pt;
         color: dimgray;
+    }
+    .footer > div {
+        display: table-cell;
+        white-space: nowrap;
+    }
+    .footer > div:first-child {
+        padding-right: 6pt;
     }
 </style>
 </head>
 <body>
 
+## The label is a fixed 3in x 2in page and the PDF engine can't shrink to fit, so pick font sizes from text length.
+## #fitFont sets $fitSize (in pt) so that single-line text of $len characters fits in $widthPt, between $minPt and $maxPt.
+## $charEm is the approximate average character width in em, which is higher for bold text.
+#macro(fitFont $len $maxPt $minPt $charEm $widthPt)
+    #set($fitSize = $maxPt)
+    #if($len > 0)
+        #set($rawSize = $widthPt / ($len * $charEm))
+        #if($rawSize < $minPt)
+            #set($fitSize = $minPt)
+        #elseif($rawSize < $maxPt)
+            #set($tenths = $rawSize * 10)
+            #set($fitSize = $tenths.intValue() / 10.0)
+        #end
+    #end
+#end
+#set($visitLocation = "$!data.get('visit_location')")
+#set($parentLocation = "$!data.get('dispense_parent_location')")
+#set($dispenseLocation = "$!data.get('dispense_location')")
+#set($patientName = "$!data.get('patient_name')")
+#set($drugName = "$!data.get('drug_name')")
+#set($patientInstructions = "$!data.get('patient_instructions')")
+#set($locationLen = $visitLocation.length() + $parentLocation.length() + $dispenseLocation.length() + 6)
+#set($patientLen = $patientName.length())
+#set($drugLen = $drugName.length())
+#set($instrLen = $patientInstructions.length())
+#fitFont($locationLen 6.0 4.0 0.5 200.0)
+#set($locationSize = $fitSize)
+#fitFont($patientLen 9.5 6.0 0.55 200.0)
+#set($patientSize = $fitSize)
+#fitFont($drugLen 8.5 4.5 0.53 200.0)
+#set($drugSize = $fitSize)
+#set($prescriberLabel = $msg.translate("pihcore.medicationDispenseLabel.prescriber", "Prescriber"))
+#set($dispenserLabel = $msg.translate("pihcore.medicationDispenseLabel.dispenser", "Dispenser"))
+#set($prescriber = "$!data.get('prescriber')")
+#set($dispenser = "$!data.get('dispenser')")
+#set($footerLen = $prescriberLabel.length() + $prescriber.length() + $dispenserLabel.length() + $dispenser.length() + 4)
+#fitFont($footerLen 6.0 4.0 0.55 190.0)
+#set($footerSize = $fitSize)
+#set($instrClass = "")
+#if($instrLen > 340)
+    #set($instrClass = "xxxs")
+#elseif($instrLen > 300)
+    #set($instrClass = "xxs")
+#elseif($instrLen > 220)
+    #set($instrClass = "xs")
+#elseif($instrLen > 110)
+    #set($instrClass = "sm")
+#end
+
 <div class="content">
 
     <div class="header">
-        <span class="location-line">#dispense_parent_location# — #dispense_location#</span>
+        <span class="location-line" style="font-size: ${locationSize}pt;">#visit_location# —  #dispense_parent_location# — #dispense_location#</span>
     </div>
 
     <div class="section">
-        <div class="label">Patient</div>
-        <div class="value patient-name">#patient_name#</div>
+        <div class="label">$msg.translate("pihcore.medicationDispenseLabel.patient", "Patient")</div>
+        <div class="value patient-name" style="font-size: ${patientSize}pt;">#patient_name#</div>
     </div>
 
     <div class="section">
-        <div class="label">Medication</div>
-        <div class="value drug-name">#drug_name#</div>
+        <div class="label">$msg.translate("pihcore.medicationDispenseLabel.medication", "Medication")</div>
+        <div class="value drug-name" style="font-size: ${drugSize}pt;">#drug_name#</div>
     </div>
 
     <div class="section">
         <div class="dosing-row">
             <div class="dosing-cell">
-                <div class="label">Dose</div>
+                <div class="label">$msg.translate("pihcore.medicationDispenseLabel.dose", "Dose")</div>
                 <div class="value">#dose# #dose_units#</div>
             </div>
             <div class="dosing-cell">
-                <div class="label">Route</div>
+                <div class="label">$msg.translate("pihcore.medicationDispenseLabel.route", "Route")</div>
                 <div class="value">#route#</div>
             </div>
             <div class="dosing-cell">
-                <div class="label">Frequency</div>
+                <div class="label">$msg.translate("pihcore.medicationDispenseLabel.frequency", "Frequency")</div>
                 <div class="value">#frequency#</div>
             </div>
         </div>
@@ -122,23 +207,33 @@
     <div class="section">
         <div class="quantity-row">
             <div class="quantity-cell">
-                <div class="label">Qty Dispensed</div>
+                <div class="label">$msg.translate("pihcore.medicationDispenseLabel.quantityDispensed", "Qty Dispensed")</div>
                 <div class="value">#quantity# #quantity_units#</div>
             </div>
             <div class="quantity-cell">
-                <div class="label">Date Prescribed</div>
+                <div class="label">$msg.translate("pihcore.medicationDispenseLabel.datePrescribed", "Date Prescribed")</div>
                 <div class="value">#date_prescribed|dd-MMM-yyyy#</div>
+            </div>
+            <div class="quantity-cell">
+                <div class="label">$msg.translate("pihcore.medicationDispenseLabel.dateDispensed", "Date Dispensed")</div>
+                <div class="value">#date_dispensed|dd-MMM-yyyy#</div>
             </div>
         </div>
     </div>
 
     <div class="section">
-        <div class="label">Patient Instructions</div>
-        <div class="instructions-box">#patient_instructions#</div>
+        <div class="label-row">
+            <div class="label">$msg.translate("pihcore.medicationDispenseLabel.patientInstructions", "Patient Instructions")</div>
+            <div class="side-effects">$msg.translate("pihcore.medicationDispenseLabel.reportSideEffects", "Report any unusual side effects")</div>
+        </div>
+        #if($instrLen > 0)
+        <div class="instructions-box $instrClass">#patient_instructions#</div>
+        #end
     </div>
 
-    <div class="footer">
-        <strong>Prescriber:</strong> #prescriber#
+    <div class="footer" style="font-size: ${footerSize}pt;">
+        <div><strong>${prescriberLabel}:</strong> #prescriber#</div>
+        <div><strong>${dispenserLabel}:</strong> #dispenser#</div>
     </div>
 
 </div>

@@ -15,5 +15,7 @@ designs:
     name: "PDF"
     type: "PdfTemplateRenderer"
     template: "medicationDispenseLabel.html"
+    properties:
+      templateType: "Velocity"
 
 
