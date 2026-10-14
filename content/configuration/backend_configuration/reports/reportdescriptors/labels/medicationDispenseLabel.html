@@ -71,6 +71,12 @@
         width: 33%;
         vertical-align: top;
     }
+    .quantity-cell.qty {
+        width: 28%;
+    }
+    .quantity-cell.prescribed {
+        width: 39%;
+    }
     .instructions-box {
         background-color: whitesmoke;
         border: 1px solid gainsboro;
@@ -206,11 +212,11 @@
 
     <div class="section">
         <div class="quantity-row">
-            <div class="quantity-cell">
+            <div class="quantity-cell qty">
                 <div class="label">$msg.translate("pihcore.medicationDispenseLabel.quantityDispensed", "Qty Dispensed")</div>
                 <div class="value">#quantity# #quantity_units#</div>
             </div>
-            <div class="quantity-cell">
+            <div class="quantity-cell prescribed">
                 <div class="label">$msg.translate("pihcore.medicationDispenseLabel.datePrescribed", "Date Prescribed")</div>
                 <div class="value">#date_prescribed|dd-MMM-yyyy#</div>
             </div>
