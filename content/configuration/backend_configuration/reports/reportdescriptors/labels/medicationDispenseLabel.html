@@ -118,6 +118,43 @@
     .footer > div:first-child {
         padding-right: 6pt;
     }
+    .next-page {
+        page-break-before: always;
+    }
+    .bag-header {
+        display: table;
+        width: 100%;
+        border-bottom: 1px solid black;
+        padding-bottom: 3pt;
+        margin-bottom: 6pt;
+    }
+    .bag-header > div {
+        display: table-cell;
+        color: dimgray;
+        vertical-align: bottom;
+    }
+    .bag-header > div.print-date {
+        text-align: right;
+        white-space: nowrap;
+        font-size: 7pt;
+    }
+    .bag-patient-label {
+        font-size: 7pt;
+        font-weight: bold;
+        text-transform: uppercase;
+        color: black;
+    }
+    .bag-patient-name {
+        font-weight: bold;
+        margin-bottom: 6pt;
+    }
+    .bag-message {
+        background-color: whitesmoke;
+        border: 1px solid gainsboro;
+        padding: 5pt;
+        font-size: 8pt;
+        font-style: italic;
+    }
 </style>
 </head>
 <body>
@@ -137,14 +174,49 @@
         #end
     #end
 #end
-#set($visitLocation = "$!data.get('visit_location')")
-#set($parentLocation = "$!data.get('dispense_parent_location')")
-#set($dispenseLocation = "$!data.get('dispense_location')")
-#set($patientName = "$!data.get('patient_name')")
-#set($drugName = "$!data.get('drug_name')")
-#set($patientInstructions = "$!data.get('patient_instructions')")
-#set($locationLen = $visitLocation.length() + $parentLocation.length() + $dispenseLocation.length() + 6)
+
+## The dataset has one row per label (bag label first, if requested). With more than one row the usual #column#
+## replacement is not available, so every value is read from the row. One page is printed per row.
+#set($labelIndex = 0)
+#foreach($row in $reportData.dataSets.get("medicationDispense"))
+#set($labelIndex = $labelIndex + 1)
+#set($rowType = "$!row.getColumnValue('row_type')")
+#set($visitLocation = "$!row.getColumnValue('visit_location')")
+#set($patientName = "$!row.getColumnValue('patient_name')")
 #set($patientLen = $patientName.length())
+
+#if($rowType == "bag")
+
+#set($orderLocation = "$!row.getColumnValue('order_location')")
+#set($printDate = "$!row.getColumnValue('print_date')")
+#set($bagLocation = "${visitLocation} — ${orderLocation}")
+#set($bagLocationLen = $bagLocation.length())
+#fitFont($bagLocationLen 8.0 4.5 0.5 140.0)
+#set($bagLocationSize = $fitSize)
+#fitFont($patientLen 14.0 7.0 0.55 200.0)
+#set($bagPatientSize = $fitSize)
+
+<div class="content#if($labelIndex > 1) next-page#end">
+
+    <div class="bag-header">
+        <div style="font-size: ${bagLocationSize}pt;">${bagLocation}</div>
+        <div class="print-date">${printDate}</div>
+    </div>
+
+    <div class="bag-patient-label">$msg.translate("pihcore.medicationDispenseLabel.patient", "Patient")</div>
+    <div class="bag-patient-name" style="font-size: ${bagPatientSize}pt;">${patientName}</div>
+
+    <div class="bag-message">$msg.translate("pihcore.medicationDispenseLabel.bagSafetyMessage", "Keep out of reach of children. Do not share or transfer these medications to anyone else.")</div>
+
+</div>
+
+#else
+
+#set($parentLocation = "$!row.getColumnValue('dispense_parent_location')")
+#set($dispenseLocation = "$!row.getColumnValue('dispense_location')")
+#set($drugName = "$!row.getColumnValue('drug_name')")
+#set($patientInstructions = "$!row.getColumnValue('patient_instructions')")
+#set($locationLen = $visitLocation.length() + $parentLocation.length() + $dispenseLocation.length() + 6)
 #set($drugLen = $drugName.length())
 #set($instrLen = $patientInstructions.length())
 #fitFont($locationLen 6.0 4.0 0.5 200.0)
@@ -155,8 +227,8 @@
 #set($drugSize = $fitSize)
 #set($prescriberLabel = $msg.translate("pihcore.medicationDispenseLabel.prescriber", "Prescriber"))
 #set($dispenserLabel = $msg.translate("pihcore.medicationDispenseLabel.dispenser", "Dispenser"))
-#set($prescriber = "$!data.get('prescriber')")
-#set($dispenser = "$!data.get('dispenser')")
+#set($prescriber = "$!row.getColumnValue('prescriber')")
+#set($dispenser = "$!row.getColumnValue('dispenser')")
 #set($footerLen = $prescriberLabel.length() + $prescriber.length() + $dispenserLabel.length() + $dispenser.length() + 4)
 #fitFont($footerLen 6.0 4.0 0.55 190.0)
 #set($footerSize = $fitSize)
@@ -171,35 +243,35 @@
     #set($instrClass = "sm")
 #end
 
-<div class="content">
+<div class="content#if($labelIndex > 1) next-page#end">
 
     <div class="header">
-        <span class="location-line" style="font-size: ${locationSize}pt;">#visit_location# —  #dispense_parent_location# — #dispense_location#</span>
+        <span class="location-line" style="font-size: ${locationSize}pt;">${visitLocation} —  ${parentLocation} — ${dispenseLocation}</span>
     </div>
 
     <div class="section">
         <div class="label">$msg.translate("pihcore.medicationDispenseLabel.patient", "Patient")</div>
-        <div class="value patient-name" style="font-size: ${patientSize}pt;">#patient_name#</div>
+        <div class="value patient-name" style="font-size: ${patientSize}pt;">${patientName}</div>
     </div>
 
     <div class="section">
         <div class="label">$msg.translate("pihcore.medicationDispenseLabel.medication", "Medication")</div>
-        <div class="value drug-name" style="font-size: ${drugSize}pt;">#drug_name#</div>
+        <div class="value drug-name" style="font-size: ${drugSize}pt;">${drugName}</div>
     </div>
 
     <div class="section">
         <div class="dosing-row">
             <div class="dosing-cell">
                 <div class="label">$msg.translate("pihcore.medicationDispenseLabel.dose", "Dose")</div>
-                <div class="value">#dose# #dose_units#</div>
+                <div class="value">$!row.getColumnValue('dose') $!row.getColumnValue('dose_units')</div>
             </div>
             <div class="dosing-cell">
                 <div class="label">$msg.translate("pihcore.medicationDispenseLabel.route", "Route")</div>
-                <div class="value">#route#</div>
+                <div class="value">$!row.getColumnValue('route')</div>
             </div>
             <div class="dosing-cell">
                 <div class="label">$msg.translate("pihcore.medicationDispenseLabel.frequency", "Frequency")</div>
-                <div class="value">#frequency#</div>
+                <div class="value">$!row.getColumnValue('frequency')</div>
             </div>
         </div>
     </div>
@@ -208,15 +280,15 @@
         <div class="quantity-row">
             <div class="quantity-cell">
                 <div class="label">$msg.translate("pihcore.medicationDispenseLabel.quantityDispensed", "Qty Dispensed")</div>
-                <div class="value">#quantity# #quantity_units#</div>
+                <div class="value">$!row.getColumnValue('quantity') $!row.getColumnValue('quantity_units')</div>
             </div>
             <div class="quantity-cell">
                 <div class="label">$msg.translate("pihcore.medicationDispenseLabel.datePrescribed", "Date Prescribed")</div>
-                <div class="value">#date_prescribed|dd-MMM-yyyy#</div>
+                <div class="value">$!row.getColumnValue('date_prescribed')</div>
             </div>
             <div class="quantity-cell">
                 <div class="label">$msg.translate("pihcore.medicationDispenseLabel.dateDispensed", "Date Dispensed")</div>
-                <div class="value">#date_dispensed|dd-MMM-yyyy#</div>
+                <div class="value">$!row.getColumnValue('date_dispensed')</div>
             </div>
         </div>
     </div>
@@ -227,16 +299,19 @@
             <div class="side-effects">$msg.translate("pihcore.medicationDispenseLabel.reportSideEffects", "Report any unusual side effects")</div>
         </div>
         #if($instrLen > 0)
-        <div class="instructions-box $instrClass">#patient_instructions#</div>
+        <div class="instructions-box $instrClass">${patientInstructions}</div>
         #end
     </div>
 
     <div class="footer" style="font-size: ${footerSize}pt;">
-        <div><strong>${prescriberLabel}:</strong> #prescriber#</div>
-        <div><strong>${dispenserLabel}:</strong> #dispenser#</div>
+        <div><strong>${prescriberLabel}:</strong> ${prescriber}</div>
+        <div><strong>${dispenserLabel}:</strong> ${dispenser}</div>
     </div>
 
 </div>
+
+#end
+#end
 
 </body>
 </html>
