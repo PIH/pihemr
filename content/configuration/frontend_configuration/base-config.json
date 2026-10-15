@@ -19,11 +19,16 @@
           "patient-diagnoses",
           "patient-conditions"
         ]
+      },
+      "prescription-actions-footer-slot": {
+        "remove": [
+          "prescription-print-action"
+        ]
       }
     },
     "actionButtons": {
       "printPrescriptionsButton": {
-        "enabled": false
+        "enabled": true
       }
     },
     "dispenseBehavior": {

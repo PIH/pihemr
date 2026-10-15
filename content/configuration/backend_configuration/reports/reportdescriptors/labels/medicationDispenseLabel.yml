@@ -1,11 +1,22 @@
 key: "medicationDispenseLabel"
 uuid: "52f6e567-4e36-11f1-94ae-5e789c4020d9"
 name: "Medication Dispense Label"
-description: "Label to Affix to Bottle/Packet that contains detail of specific medication dispensed"
+description: "Labels to affix to the bag, and to the bottle/packet that contains detail of each specific medication dispensed. Prints one page per label."
 parameters:
-  - key: "medicationDispenseUuid"
+  # The reporting REST endpoint only passes single-valued parameters, so this is a comma-separated list of uuids
+  - key: "medicationDispenseUuids"
     type: "java.lang.String"
-    label: "Medication Dispense"
+    label: "Medication Dispenses (comma-separated)"
+    required: false
+  - key: "printBagLabel"
+    type: "java.lang.Boolean"
+    label: "Print Bag Label"
+    required: false
+  # Prescription encounter, used to build the bag label
+  - key: "encounterUuid"
+    type: "java.lang.String"
+    label: "Prescription Encounter"
+    required: false
 datasets:
   - key: "medicationDispense"
     type: "sql"
@@ -17,5 +28,4 @@ designs:
     template: "medicationDispenseLabel.html"
     properties:
       templateType: "Velocity"
-
 
