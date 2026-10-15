@@ -1,3 +1,0 @@
-home/tomcat/.OpenMRS home/tomcat/
-etc/default/* etc/default/
-openmrs.war var/lib/tomcat9/webapps/

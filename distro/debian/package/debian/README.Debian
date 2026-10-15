@@ -1,7 +1,0 @@
-PIH-EMR for Debian
----------------------
-
-This package will depend on a local installation of tomcat7 (not the debian package)
-as well as mysql (can be debian) and java sun (can also be debian).
-
- -- PIH <medinfo@pih.org>

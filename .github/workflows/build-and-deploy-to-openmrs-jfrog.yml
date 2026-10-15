@@ -52,29 +52,3 @@ jobs:
           token: ${{ secrets.GHA_WRITE_TOKEN }}
           repository: PIH/lesotho-emr
           event-type: dependency-trigger
-
-  deploy-debian:
-    needs: build-and-publish
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up JDK
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: 8
-          cache: 'maven'
-
-      - name: Install Debian build tools
-        run: sudo apt-get update && sudo apt-get install -y devscripts build-essential lintian debhelper rename
-
-      - name: Build Debian package
-        run: mvn -B -Pdistribution package --file distro/pom.xml
-
-      - name: Publish Debian package
-        working-directory: distro/target/debian
-        run: ./publish.sh unstable
-        env:
-          DEBIAN_REPO_USER: ${{ secrets.OPENMRS_MAVEN_USERNAME }}
-          DEBIAN_REPO_PASSWORD: ${{ secrets.OPENMRS_MAVEN_PASSWORD }}
