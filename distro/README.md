@@ -18,10 +18,6 @@ mvn clean package
 
 Note that this repo's scheduled `update-versions.yml` workflow (which runs `mvn versions:update-properties`) only updates properties backing dependencies declared in this repo's own `pom.xml` — since neither `content/` nor `distro/` declares any dependencies, that workflow is a no-op here and has no effect on module/omod versions.
 
-## Debian package
-
-`debian/` contains the packaging scripts (`build.sh`, `publish.sh`) and control files used to build and publish a `.deb` package of the raw OpenMRS war/module/OWA set (no content) to the PIH EMR Debian repository, for hosts still provisioned via Puppet rather than Docker. See `.github/workflows/build-and-deploy.yml`'s `deploy-debian` job for how this runs in CI.
-
 ## Release
 
 Releases follow semantic versioning and run via the `release-to-sonatype.yml` GitHub Actions workflow (a thin caller into `openmrs-contrib-distro-tools`'s reusable `release-to-sonatype.yml`), which runs `mvn release:prepare release:perform -Prelease` across the whole reactor (`content/` + `distro/`) from the root `pom.xml`.
