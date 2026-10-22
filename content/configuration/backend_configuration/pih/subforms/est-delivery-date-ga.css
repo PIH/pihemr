@@ -5,7 +5,9 @@ Colors / class names (.value, .field-error, .two-columns, teal #3f746d,
                                                   so this sits comfortably next to the rest of the PIH htmlforms.
 */
 
-:root{
+/* All rules are scoped to .edd-div: this file is injected into the host form's page,
+   so global selectors (body, *, :root) would restyle the whole page. */
+.edd-div{
     --page-bg:      #f4f4f5;
     --text:         #1a1a1a;
     --caption:      #8a8a8a;
@@ -18,16 +20,12 @@ Colors / class names (.value, .field-error, .two-columns, teal #3f746d,
     --focus-blue-bg:#eef2ff;
 }
 
-* { box-sizing: border-box; }
-
-body {
-    margin: 0;
-    background: var(--page-bg);
-}
+.edd-div, .edd-div * { box-sizing: border-box; }
 
 .edd-div{
     max-width: 920px;
     margin-left: 10px;
+    background: var(--page-bg);
 }
 
 .field-group{
