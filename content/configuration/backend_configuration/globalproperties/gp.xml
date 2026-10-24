@@ -199,13 +199,31 @@
             <property>registrationcore.patientNameSearch</property>
             <value>registrationcore.ExistingPatientNameSearch</value>
         </globalProperty>
+        <!-- The "Possible duplicates" question of the registration form (see showDuplicatePatientSection in the
+             registrationConfig of pih-config, on by default) uses the fast search, and needs an algorithm that scores and
+             reports per-field results; BasicSimilarPatientSearchAlgorithm and BasicExactPatientSearchAlgorithm do neither.
+             The precise search is used by the exact matches listed on the confirmation step of the old registration form
+             (when showDuplicatePatientSection is false) and by the registrationcore REST similar patient search. A site that keeps
+             the old registration form should set showDuplicatePatientSection to false and override
+             registrationcore.preciseSimilarPatientSearchAlgorithm with
+             registrationcore.BasicExactPatientSearchAlgorithm. -->
         <globalProperty>
             <property>registrationcore.fastSimilarPatientSearchAlgorithm</property>
             <value>pihcore.PihPatientSearchAlgorithm</value>
         </globalProperty>
         <globalProperty>
             <property>registrationcore.preciseSimilarPatientSearchAlgorithm</property>
-            <value>registrationcore.BasicExactPatientSearchAlgorithm</value>
+            <value>pihcore.PihPatientSearchAlgorithm</value>
+        </globalProperty>
+        <!-- Matches scoring at least this are shown as "strong" matches. Scores come from PihPatientSearchAlgorithm: gender
+             match 1, exact birthdate 10, exact given and family name 2 (all fixed in the algorithm), plus the weights in
+             similarPatientsSearch of the registrationConfig in pih-config (address fields, phone number, mother's first name,
+             which differ per country). With no extra weights, 12 is reached by an exact name, same gender and exact
+             birthdate (13), and not by a name that only matches phonetically, with the same gender and birthdate (11). Any
+             weights that apply on top, such as a phone match, add to those scores. -->
+        <globalProperty>
+            <property>registrationapp.strongMatchCutoff</property>
+            <value>12.0</value>
         </globalProperty>
 
         <!-- Name Phonetics -->
