@@ -27,6 +27,18 @@ angular.module("encounterTypeConfig", [])
             editUrl: "/htmlformentryui/htmlform/editHtmlFormWithStandardUi.page?patientId={{visit.patient.uuid}}&visitId={{visit.uuid}}&encounterId={{encounter.uuid}}&definitionUiResource=file:configuration/pih/htmlforms/section-chief-complaint.xml&returnUrl={{returnUrl}}&breadcrumbOverride={{breadcrumbOverride}}"
         };
 
+        var reviewOfSystems = {
+            type: "encounter-section",
+            id: "pihcore-review-of-systems",
+            label: "pihcore.reviewOfSystems.title",
+            icon: "fas fa-fw fa-clipboard-list",
+            classes: "indent",
+            shortTemplate: "templates/sections/reviewOfSystemsSectionShort.page",
+            longTemplate: "templates/sections/viewSectionWithHtmlFormLong.page",
+            templateModelUrl: "/htmlformentryui/htmlform/viewEncounterWithHtmlForm/getAsHtml.action?encounterId={{encounter.uuid}}&definitionUiResource=" + getFormResource("section-review-of-systems.xml"),
+            editUrl: "/htmlformentryui/htmlform/editHtmlFormWithStandardUi.page?patientId={{visit.patient.uuid}}&visitId={{visit.uuid}}&encounterId={{encounter.uuid}}&definitionUiResource=" + getFormResource("section-review-of-systems.xml") + "&returnUrl={{returnUrl}}&breadcrumbOverride={{breadcrumbOverride}}"
+        };
+
         // we include the edit url here because the "Next" navigator functionality uses it
         var allergies = {
             type: "include-section",
@@ -1115,6 +1127,7 @@ angular.module("encounterTypeConfig", [])
             showOnVisitList: true,
             sections: [
                 primaryCareHistory,
+                reviewOfSystems,
                 generalVaccinations,
                 pedsFoodAndSupplements,
                 primaryCareDx,
@@ -1132,6 +1145,7 @@ angular.module("encounterTypeConfig", [])
             showOnVisitList: true,
             sections: [
                 chiefComplaint,
+                reviewOfSystems,
                 generalVaccinations,
                 pedsFoodAndSupplements,
                 primaryCareDx,
