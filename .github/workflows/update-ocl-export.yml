@@ -58,13 +58,18 @@ jobs:
           fi
           description=$(jq -r '.description // ""' <<< "$version_json")
 
-          # The export endpoint redirects to a signed S3 URL; 204 means the export isn't built yet
-          status=$(curl -sS -o /dev/null -D headers.txt -w '%{http_code}' -H "$auth" "$OCL_API/$version/export/")
-          if [ "$status" = "204" ]; then
-            echo "::error::The export for $version isn't ready yet in OCL. Try again in a few minutes."
-            exit 1
-          elif [ "$status" != "302" ] && [ "$status" != "303" ]; then
-            echo "::error::Unexpected response $status from OCL when requesting the export for $version"
+          # The export endpoint redirects to a signed S3 URL once the export is built.
+          # Until then it returns 204 (not started) or 208 (being built), so wait up to ~20 minutes.
+          for attempt in $(seq 1 40); do
+            status=$(curl -sS -o /dev/null -D headers.txt -w '%{http_code}' -H "$auth" "$OCL_API/$version/export/")
+            case "$status" in
+              302|303) break ;;
+              204|208) echo "Export for $version not ready yet (HTTP $status), waiting..."; sleep 30 ;;
+              *) echo "::error::Unexpected response $status from OCL when requesting the export for $version"; exit 1 ;;
+            esac
+          done
+          if [ "$status" != "302" ] && [ "$status" != "303" ]; then
+            echo "::error::The export for $version still isn't ready in OCL after 20 minutes. Try again later."
             exit 1
           fi
           url=$(grep -i '^location:' headers.txt | awk '{print $2}' | tr -d '\r')
