@@ -1,0 +1,131 @@
+name: Update OCL export
+
+# Replaces the PIH dictionary export in content/configuration/backend_configuration/ocl/
+# with a released version from OCL, and opens a pull request for review.
+# Run it from the Actions tab → "Update OCL export" → "Run workflow".
+#
+# Could also run on a schedule (e.g. daily) to open a PR whenever a new version
+# is released in OCL, by adding:
+#   schedule:
+#     - cron: "0 6 * * *"
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "PIH source version to use (e.g. 1.8.43). Leave blank for the latest released version."
+        required: false
+        default: ""
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: update-ocl-export
+  cancel-in-progress: false
+
+jobs:
+  update-ocl-export:
+    if: github.repository_owner == 'PIH'
+    runs-on: ubuntu-latest
+    env:
+      OCL_API: https://api.openconceptlab.org/orgs/PIH/sources/PIH
+      OCL_DIR: content/configuration/backend_configuration/ocl
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download export from OCL
+        id: export
+        env:
+          OCL_TOKEN: ${{ secrets.OCL_API_TOKEN }}
+          REQUESTED_VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          auth="Authorization: Token ${OCL_TOKEN}"
+
+          version="${REQUESTED_VERSION// /}"
+          if [ -z "$version" ]; then
+            version=$(curl -sSf -H "$auth" "$OCL_API/latest/" | jq -r '.id')
+          fi
+          if ! [[ "$version" =~ ^[0-9]+(\.[0-9]+)*$ ]]; then
+            echo "::error::'$version' is not a valid version number (expected something like 1.8.43)"
+            exit 1
+          fi
+          if ! version_json=$(curl -sSf -H "$auth" "$OCL_API/$version/"); then
+            echo "::error::Couldn't find version $version of the PIH source in OCL"
+            exit 1
+          fi
+          description=$(jq -r '.description // ""' <<< "$version_json")
+
+          # The export endpoint redirects to a signed S3 URL once the export is built.
+          # Until then it returns 204 (not started) or 208 (being built), so wait up to ~20 minutes.
+          for attempt in $(seq 1 40); do
+            status=$(curl -sS -o /dev/null -D headers.txt -w '%{http_code}' -H "$auth" "$OCL_API/$version/export/")
+            case "$status" in
+              302|303) break ;;
+              204|208) echo "Export for $version not ready yet (HTTP $status), waiting..."; sleep 30 ;;
+              *) echo "::error::Unexpected response $status from OCL when requesting the export for $version"; exit 1 ;;
+            esac
+          done
+          if [ "$status" != "302" ] && [ "$status" != "303" ]; then
+            echo "::error::The export for $version still isn't ready in OCL after 20 minutes. Try again later."
+            exit 1
+          fi
+          url=$(grep -i '^location:' headers.txt | awk '{print $2}' | tr -d '\r')
+          rm headers.txt
+
+          # Signed URL: download without the OCL token
+          curl -sSf -o "$RUNNER_TEMP/export.zip" "$url"
+          export_version=$(unzip -p "$RUNNER_TEMP/export.zip" export.json | jq -r '.id')
+          if [ "$export_version" != "$version" ]; then
+            echo "::error::Downloaded export is version '$export_version', expected '$version'"
+            exit 1
+          fi
+
+          # e.g. PIH_PIH_v1.8.43.2026-10-29_212531.zip -> orgs_PIH_sources_PIH_1.8.43_2026-10-29_212531.zip
+          timestamp=$(basename "${url%%\?*}" | grep -oE '[0-9]{4}-[0-9]{2}-[0-9]{2}_[0-9]{6}')
+          filename="orgs_PIH_sources_PIH_${version}_${timestamp}.zip"
+
+          current_version=""
+          for f in "$OCL_DIR"/*.zip; do
+            [ -e "$f" ] && current_version=$(unzip -p "$f" export.json | jq -r '.id')
+          done
+          if [ "$current_version" = "$version" ]; then
+            echo "::notice::The repository already has version $version. Nothing to do."
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          git rm -q "$OCL_DIR"/*.zip || true
+          mkdir -p "$OCL_DIR"
+          cp "$RUNNER_TEMP/export.zip" "$OCL_DIR/$filename"
+
+          {
+            echo "changed=true"
+            echo "version=$version"
+            echo "previous_version=${current_version:-none}"
+            echo "filename=$filename"
+            echo "description<<EOF"
+            echo "$description"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Open pull request
+        if: steps.export.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@v7
+        with:
+          # A PAT rather than GITHUB_TOKEN, so the "Verify PRs" workflow runs on the new PR
+          token: ${{ secrets.GHA_WRITE_TOKEN }}
+          branch: ocl-export-${{ steps.export.outputs.version }}
+          delete-branch: true
+          add-paths: ${{ env.OCL_DIR }}
+          commit-message: "Update PIH OCL export to ${{ steps.export.outputs.version }}"
+          title: "Update PIH OCL export to ${{ steps.export.outputs.version }}"
+          body: |
+            Replaces the PIH dictionary export (${{ steps.export.outputs.previous_version }} → **${{ steps.export.outputs.version }}**) with `${{ steps.export.outputs.filename }}`.
+
+            OCL release notes for ${{ steps.export.outputs.version }}:
+            > ${{ steps.export.outputs.description }}
+
+            Requested by @${{ github.actor }} via the "Update OCL export" workflow.
