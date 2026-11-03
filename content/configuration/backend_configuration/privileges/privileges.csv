@@ -80,7 +80,6 @@ ac6585f1-10e0-4a4e-84e3-fb8b098f0cbe,${privilege.task_emr_retro_clinical_note_th
 aa6751d5-1ca1-4863-be6b-d7a466aafd12,${privilege.task_manage_conditions_list},Able to activate/inactivate/void condition lists.
 1a819ef6-4632-4d2e-8227-7bdf9e8e273a,${privilege.task_emr_check_in},Ability to enter a Check In form from the patient dashboard.
 cc9bcfd5-2bc8-489f-85a7-fbd65e5a8293,${privilege.task_dispensing_dispense},Ability to dispense medicine.
-c4121a43-895d-4c07-83f9-64e6907e3742,${privilege.task_emr_death_certificate_form},Enter the Death Certificate form
 d92637e3-8c03-4104-836a-f5bde8d8be47,${privilege.task_dispensing_edit},Able to edit provide location and date of dispensing medication.
 6de2bc14-d143-468b-a70a-49fef3ba66d3,${privilege.task_allergies_modify},"Able to add, edit, delete allergies"
 e534c845-74da-45f8-97d5-304482c52256,${privilege.task_order_labs},Able to order lab tests via the order entry UI
