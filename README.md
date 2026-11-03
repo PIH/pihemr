@@ -114,7 +114,8 @@ Components are defined in [pihcore/.../config/Components.java](https://github.co
 - **covid19**: Adds COVID-19 forms to visit actions. Uses COVID-19 Location tag.
 - **covid19IntakeForm**: Just the intake form for COVID-19. Uses COVID-19 Location tag.
 - **dataExports**: Enables the "data exports" section of the Reports app on the home page.
-- **deathCertificate**: Custom death certificate built for Mirabalis, not currently used.
+- **deathCertificate**: Custom death certificate built for Mirabalis, not currently used. The form is retired
+  (`htmlforms/retired/deathCertificate.xml`).
 - **diabetesProgram**: Needs DiabetesProgram bundle, used by CES
 - **dispensing**: Adds dispensing form as visit action, Dispensing app to home page, and
   dispensing summary to clinician dashboard.
