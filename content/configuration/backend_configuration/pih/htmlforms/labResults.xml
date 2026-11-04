@@ -357,8 +357,8 @@
             <p class="side-by-side small">
                 <obs id="sickleScan" style="radio"
                      conceptId="CIEL:168105"
-                     answerConceptIds="CIEL:168106,CIEL:126513,CIEL:117703,CIEL:168107"
-                     answerCodes="AA,AS,SS,SC"/>
+                     answerConceptIds="CIEL:168106,CIEL:126513,CIEL:117703,CIEL:168107,CIEL:165547"
+                     answerCodes="AA,AS,SS,SC,AC"/>
             </p>
 
             <label for="sickle-hg-elec">
@@ -922,8 +922,8 @@
                         </field>
                     </span>
                 </template>
-                <render concept="CIEL:159654" message="pihcore.lab.troponinIrt" tag="troponinIrt" />
-                <render concept="CIEL:159655" message="pihcore.lab.troponinTrt" tag="troponinTrt" />
+                <render concept="PIH:20052" message="pihcore.lab.troponinIrt" tag="troponinIrt" />
+                <render concept="CIEL:169499" message="pihcore.lab.troponinTrt" tag="troponinTrt" />
             </repeat>
 
             <!-- Free-text -->
