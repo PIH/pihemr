@@ -915,10 +915,10 @@
                     <label for="{tag}">
                         <uimessage code="{message}"/>
                     </label>
-                    <span class="small">
+                    <span class="small side-by-side">
                         <field>
                             <obs id="{tag}" conceptId="{concept}" style="radio"
-                            answerConceptIds="CIEL:703,CIEL:664"/>
+                                 answerConceptIds="CIEL:703,CIEL:664"/>
                         </field>
                     </span>
                 </template>
