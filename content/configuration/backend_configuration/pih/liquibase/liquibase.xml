@@ -1332,4 +1332,37 @@
         </sql>
     </changeSet>
 
+    <!--
+        UHM-9656 (https://pihemr.atlassian.net/browse/UHM-9656): PIH OCL 1.8.47-1.8.50 failed to import with
+        "Duplicate entry '7159BBBB...' for key 'concept_name_uuid_index'". PIH 21797 "P-aminosalicylic acid",
+        cloned from CIEL 81457, keeps CIEL's name uuid 7159BBBB..., which PIH servers already have on a voided
+        name ("P-aminosalicylic acid", voided 2022) of the older concept PIH 13277 "Aminosalicylic acid"
+        (concept uuid 71107AAAA..., CIEL 71107).
+
+        This gives only that one old name a new random uuid. Its text, voided status and concept_name_id are
+        unchanged, so obs / conditions / diagnoses that reference it are unaffected. The precondition skips
+        servers that don't have that name on 13277. This runs before the Initializer OCL load (see
+        pihcore ConfigurationSetup), so the uuid is free when the OCL export is imported.
+    -->
+    <changeSet id="20261105-free-pas-name-uuid-for-ocl-import" author="mgoodrich">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                select count(*) from concept_name cn
+                  join concept c on c.concept_id = cn.concept_id
+                 where cn.uuid = '7159BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB'
+                   and c.uuid = '71107AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA';
+            </sqlCheck>
+        </preConditions>
+        <comment>
+            UHM-9656 - Give the old voided "P-aminosalicylic acid" name on PIH 13277 a new uuid, so OCL concept 21797 can import
+        </comment>
+        <sql>
+            update concept_name cn
+              join concept c on c.concept_id = cn.concept_id
+               set cn.uuid = uuid()
+             where cn.uuid = '7159BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB'
+               and c.uuid = '71107AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA';
+        </sql>
+    </changeSet>
+
 </databaseChangeLog>
