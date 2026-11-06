@@ -4,6 +4,13 @@ name: Update OCL export
 # with a released version from OCL, and opens a pull request for review.
 # Run it from the Actions tab → "Update OCL export" → "Run workflow".
 #
+# With "Release a new version first" ticked, it first releases a new version of the PIH source
+# in OCL: it runs the release check on everything changed since the last release, and only
+# releases if there are no errors. Releasing needs OCL_API_TOKEN to belong to a member of the PIH
+# organization in OCL. The release job runs in the "ocl-release" GitHub environment, so repo admins
+# can require an approval before anything is released (Settings → Environments → ocl-release).
+# A release includes everyone's unreleased edits in OCL, so check with the dictionary maintainers first.
+#
 # Before opening the PR, it runs the PIH OCL release check (ocl_release_check.py from the
 # PIH/claude-plugins "ocl" plugin, downloaded from its main branch) on the concepts that changed
 # since the export already in this repo. If the check finds errors (e.g. a concept name uuid
@@ -18,8 +25,17 @@ name: Update OCL export
 on:
   workflow_dispatch:
     inputs:
+      release_new_version:
+        description: "Release a new version of the PIH source in OCL first (check with the dictionary maintainers)"
+        type: boolean
+        required: false
+        default: false
+      release_notes:
+        description: "Release notes for the new version (required when releasing)"
+        required: false
+        default: ""
       version:
-        description: "PIH source version to use (e.g. 1.8.43). Leave blank for the latest released version."
+        description: "Version to use (e.g. 1.8.43). Blank = the latest release, or the next number when releasing."
         required: false
         default: ""
       skip_release_check:
@@ -37,8 +53,108 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  release:
+    if: github.repository_owner == 'PIH' && inputs.release_new_version
+    runs-on: ubuntu-latest
+    environment: ocl-release
+    env:
+      OCL_API: https://api.openconceptlab.org/orgs/PIH/sources/PIH
+      CHECK_URL: https://raw.githubusercontent.com/PIH/claude-plugins/main/plugins/ocl/skills/ocl-search/scripts/ocl_release_check.py
+    outputs:
+      version: ${{ steps.release.outputs.version }}
+      check_summary: ${{ steps.precheck.outputs.summary }}
+    steps:
+      - name: Work out the new version
+        id: version
+        env:
+          OCL_API_TOKEN: ${{ secrets.OCL_API_TOKEN }}
+          REQUESTED_VERSION: ${{ inputs.version }}
+          RELEASE_NOTES: ${{ inputs.release_notes }}
+        run: |
+          set -euo pipefail
+          auth="Authorization: Token ${OCL_API_TOKEN}"
+          if [ -z "${RELEASE_NOTES// /}" ]; then
+            echo "::error::Release notes are required when releasing a new version"
+            exit 1
+          fi
+          latest=$(curl -sSf -H "$auth" "$OCL_API/latest/" | jq -r '.id')
+          version="${REQUESTED_VERSION// /}"
+          if [ -z "$version" ]; then
+            # Next number after the latest release, e.g. 1.8.50 -> 1.8.51
+            version="${latest%.*}.$(( ${latest##*.} + 1 ))"
+          fi
+          if ! [[ "$version" =~ ^[0-9]+(\.[0-9]+)*$ ]]; then
+            echo "::error::'$version' is not a valid version number (expected something like 1.8.51)"
+            exit 1
+          fi
+          code=$(curl -sS -o /dev/null -w '%{http_code}' -H "$auth" "$OCL_API/$version/")
+          if [ "$code" != "404" ]; then
+            echo "::error::Version $version already exists in OCL (HTTP $code). Leave the version blank to use the next number."
+            exit 1
+          fi
+          echo "Latest release: $latest. New version: $version"
+          echo "latest=$latest" >> "$GITHUB_OUTPUT"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Run PIH OCL release check on the unreleased changes
+        id: precheck
+        env:
+          OCL_API_TOKEN: ${{ secrets.OCL_API_TOKEN }}
+          SKIP: ${{ inputs.skip_release_check }}
+        run: |
+          set -uo pipefail
+          summary="$RUNNER_TEMP/pre-release-check.md"
+          if [ "$SKIP" = "true" ]; then
+            printf '### PIH OCL pre-release check: ⚠️ SKIPPED\n\nThe release check was skipped when this workflow was run (skip_release_check).\n' > "$summary"
+            status=0
+          else
+            curl -sSf -o "$RUNNER_TEMP/ocl_release_check.py" "$CHECK_URL" || { echo "::error::Couldn't download the release check from $CHECK_URL"; exit 1; }
+            python3 -I "$RUNNER_TEMP/ocl_release_check.py" --unreleased --fail-on error --summary-md "$summary"
+            status=$?
+          fi
+          [ -f "$summary" ] && cat "$summary" >> "$GITHUB_STEP_SUMMARY"
+          {
+            echo "summary<<EOF_SUMMARY"
+            cat "$summary" 2>/dev/null || echo "(no summary)"
+            echo "EOF_SUMMARY"
+          } >> "$GITHUB_OUTPUT"
+          case "$status" in
+            0) ;;
+            1) echo "::error::The release check found errors in the unreleased changes (see the summary). Nothing was released. Fix them in OCL and run this again."; exit 1 ;;
+            *) echo "::error::The release check couldn't run (exit $status). Nothing was released."; exit 1 ;;
+          esac
+
+      - name: Release the new version in OCL
+        id: release
+        env:
+          OCL_API_TOKEN: ${{ secrets.OCL_API_TOKEN }}
+          VERSION: ${{ steps.version.outputs.version }}
+          RELEASE_NOTES: ${{ inputs.release_notes }}
+        run: |
+          set -euo pipefail
+          body=$(jq -n --arg id "$VERSION" --arg d "$RELEASE_NOTES (released by ${GITHUB_ACTOR} via PIH/pihemr GitHub Actions)" \
+                 '{id: $id, description: $d, released: true}')
+          code=$(curl -sS -o "$RUNNER_TEMP/release.json" -w '%{http_code}' -X POST \
+                 -H "Authorization: Token ${OCL_API_TOKEN}" -H 'Content-Type: application/json' \
+                 "$OCL_API/versions/" -d "$body")
+          if [ "$code" != "201" ] && [ "$code" != "200" ]; then
+            echo "::error::OCL refused to create version $VERSION (HTTP $code). Does OCL_API_TOKEN belong to a member of the PIH organization in OCL?"
+            cat "$RUNNER_TEMP/release.json" || true
+            exit 1
+          fi
+          released=$(curl -sSf -H "Authorization: Token ${OCL_API_TOKEN}" "$OCL_API/$VERSION/" | jq -r '.released')
+          if [ "$released" != "true" ]; then
+            echo "::error::Version $VERSION was created but isn't marked released in OCL"
+            exit 1
+          fi
+          echo "::notice::Released PIH $VERSION in OCL"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
   update-ocl-export:
-    if: github.repository_owner == 'PIH'
+    needs: release
+    if: >-
+      always() && github.repository_owner == 'PIH' &&
+      (needs.release.result == 'success' || needs.release.result == 'skipped')
     runs-on: ubuntu-latest
     env:
       OCL_API: https://api.openconceptlab.org/orgs/PIH/sources/PIH
@@ -50,7 +166,7 @@ jobs:
         id: export
         env:
           OCL_TOKEN: ${{ secrets.OCL_API_TOKEN }}
-          REQUESTED_VERSION: ${{ inputs.version }}
+          REQUESTED_VERSION: ${{ needs.release.outputs.version || inputs.version }}
         run: |
           set -euo pipefail
           auth="Authorization: Token ${OCL_TOKEN}"
@@ -71,7 +187,7 @@ jobs:
 
           # The export endpoint redirects to a signed S3 URL once the export is built.
           # Until then it returns 204 (not started) or 208 (being built), so wait up to ~20 minutes.
-          for attempt in $(seq 1 40); do
+          for _ in $(seq 1 40); do
             status=$(curl -sS -o /dev/null -D headers.txt -w '%{http_code}' -H "$auth" "$OCL_API/$version/export/")
             case "$status" in
               302|303) break ;;
@@ -179,6 +295,8 @@ jobs:
 
             OCL release notes for ${{ steps.export.outputs.version }}:
             > ${{ steps.export.outputs.description }}
+
+            ${{ needs.release.outputs.check_summary }}
 
             ${{ steps.check.outputs.summary }}
 
