@@ -11,6 +11,12 @@ name: Update OCL export
 # can require an approval before anything is released (Settings → Environments → ocl-release).
 # A release includes everyone's unreleased edits in OCL, so check with the dictionary maintainers first.
 #
+# OCL_API_TOKEN (PIH organization secret, shared with this repo only): FOR NOW this is Mark Goodrich's personal OCL API token (set up 2026-11-06,
+# UHM-9643). Releases made by this workflow therefore show up in OCL as made by him. OCL has no
+# service accounts (one token per user, no scopes), so the plan is to replace it with the token of a
+# dedicated OCL user (e.g. "pih-automation" on a shared mailbox) that's a member of the PIH organization.
+# If the token stops working (e.g. it's regenerated), update the secret.
+#
 # Before opening the PR, it runs the PIH OCL release check (ocl_release_check.py from the
 # PIH/claude-plugins "ocl" plugin, downloaded from its main branch) on the concepts that changed
 # since the export already in this repo. If the check finds errors (e.g. a concept name uuid
