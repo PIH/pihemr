@@ -4,6 +4,12 @@ name: Update OCL export
 # with a released version from OCL, and opens a pull request for review.
 # Run it from the Actions tab → "Update OCL export" → "Run workflow".
 #
+# Before opening the PR, it runs the PIH OCL release check (ocl_release_check.py from the
+# PIH/claude-plugins "ocl" plugin, downloaded from its main branch) on the concepts that changed
+# since the export already in this repo. If the check finds errors (e.g. a concept name uuid
+# that would break the OpenMRS import, UHM-9656), the run fails and no PR is opened.
+# The same check is what the "ocl" Claude skill runs before a release; see that plugin's README.
+#
 # Could also run on a schedule (e.g. daily) to open a PR whenever a new version
 # is released in OCL, by adding:
 #   schedule:
@@ -16,6 +22,11 @@ on:
         description: "PIH source version to use (e.g. 1.8.43). Leave blank for the latest released version."
         required: false
         default: ""
+      skip_release_check:
+        description: "Skip the release check (emergencies only; the PR will say it was skipped)"
+        type: boolean
+        required: false
+        default: false
 
 permissions:
   contents: write
@@ -97,6 +108,11 @@ jobs:
             exit 0
           fi
 
+          # Keep the current export as the baseline for the release check
+          for f in "$OCL_DIR"/*.zip; do
+            [ -e "$f" ] && cp "$f" "$RUNNER_TEMP/baseline.zip"
+          done
+
           git rm -q "$OCL_DIR"/*.zip || true
           mkdir -p "$OCL_DIR"
           cp "$RUNNER_TEMP/export.zip" "$OCL_DIR/$filename"
@@ -110,6 +126,42 @@ jobs:
             echo "$description"
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
+
+      - name: Run PIH OCL release check
+        id: check
+        if: steps.export.outputs.changed == 'true'
+        env:
+          OCL_API_TOKEN: ${{ secrets.OCL_API_TOKEN }}
+          SKIP: ${{ inputs.skip_release_check }}
+          CHECK_URL: https://raw.githubusercontent.com/PIH/claude-plugins/main/plugins/ocl/skills/ocl-search/scripts/ocl_release_check.py
+        run: |
+          set -uo pipefail
+          summary="$RUNNER_TEMP/release-check.md"
+          if [ "$SKIP" = "true" ]; then
+            printf '### PIH OCL release check: ⚠️ SKIPPED\n\nThe release check was skipped when this workflow was run (skip_release_check). Check this export before merging.\n' > "$summary"
+            status=0
+          else
+            curl -sSf -o "$RUNNER_TEMP/ocl_release_check.py" "$CHECK_URL" || { echo "::error::Couldn't download the release check from $CHECK_URL"; exit 1; }
+            args=(--export "$RUNNER_TEMP/export.zip" --fail-on error --summary-md "$summary")
+            if [ -f "$RUNNER_TEMP/baseline.zip" ]; then
+              args+=(--baseline "$RUNNER_TEMP/baseline.zip")
+            else
+              echo "::warning::No export in the repository to compare with, so every concept is checked"
+            fi
+            python3 -I "$RUNNER_TEMP/ocl_release_check.py" "${args[@]}"
+            status=$?
+          fi
+          [ -f "$summary" ] && cat "$summary" >> "$GITHUB_STEP_SUMMARY"
+          {
+            echo "summary<<EOF_SUMMARY"
+            cat "$summary" 2>/dev/null || echo "(no summary)"
+            echo "EOF_SUMMARY"
+          } >> "$GITHUB_OUTPUT"
+          case "$status" in
+            0) ;;
+            1) echo "::error::The release check found errors in ${{ steps.export.outputs.version }} (see the summary). No PR was opened. Fix them in OCL, release a new version, and run this again."; exit 1 ;;
+            *) echo "::error::The release check couldn't run (exit $status). No PR was opened."; exit 1 ;;
+          esac
 
       - name: Open pull request
         if: steps.export.outputs.changed == 'true'
@@ -127,5 +179,7 @@ jobs:
 
             OCL release notes for ${{ steps.export.outputs.version }}:
             > ${{ steps.export.outputs.description }}
+
+            ${{ steps.check.outputs.summary }}
 
             Requested by @${{ github.actor }} via the "Update OCL export" workflow.
