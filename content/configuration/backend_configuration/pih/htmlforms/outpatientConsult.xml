@@ -3,9 +3,6 @@
           formEncounterType="92fd09b4-5335-4f7e-9f63-b2a663fd09a6" formVersion="1.0">
 
     <postSubmissionAction class="org.openmrs.module.pihcore.htmlformentry.action.ApplyDispositionAction"/>
-    <includeIf velocityTest="$config.isComponentEnabled('deathCertificate')">
-        <postSubmissionAction class="org.openmrs.module.pihcore.htmlformentry.RedirectToDeathNoteIfMissing"/>
-    </includeIf>
 
     <style type="text/css">
         <ifMode mode="EDIT">

@@ -26,3 +26,4 @@ f79f5ac4-1c94-4b64-b0d4-04565c1d52b9,,NCI Concept Code,"National Cancer Institut
 1b880698-489f-59ed-bd5b-f42a2f5c8e81,,HL7-MedicationDispenseStatus,Medication dispense status and FHIR,
 ed38790e-5dbb-475a-aa5f-e9009593613c,,HL7 Medication Dispense Status Reason,Medication dispense status reason and FHIR,
 0b8a4480-bc5b-11ed-9873-0242ac120002,,OpenBoxes,OpenBoxes Product Code for Drug Mappings,
+d86e6613-c8ce-45b1-b8c3-33714f73755b,,DCM,DICOM Controlled Terminology. Used for imaging modality (DICOM CID 29) mappings on imaging orderables,

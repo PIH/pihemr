@@ -741,8 +741,8 @@ Standalone version of the supplements table from section-peds-feeding.xml (6 sup
 
 ## 10. Retired Forms
 
-### deathCertificate.xml
-**Form Name:** Death Certificate | **Version:** 2.1
+### retired/deathCertificate.xml
+**Form Name:** Death Certificate (Retired) | **Version:** 2.1
 
 Official death certificate for the Haitian Ministry of Health. Captures:
 - Patient demographics (auto-populated), habitat, civil status, occupation, maternal death flag
@@ -797,7 +797,7 @@ Designed as hybrid paper/electronic form.
 ### Form Patterns
 - **Wrapper forms** (e.g., ncd-initial.xml, ancFollowup.xml) are thin shells that reference `encounter-with-sections.xml` for modular section composition.
 - **Section forms** (section-*.xml) are reusable building blocks included via subform tags; they are not typically standalone encounters.
-- **Full forms** (e.g., surgicalPostOpNote.xml, deathCertificate.xml) embed all content directly.
+- **Full forms** (e.g., surgicalPostOpNote.xml, retired/deathCertificate.xml) embed all content directly.
 
 ### Versioning
 Many forms have versioned siblings (v1.0, v2.0, _v1.1, etc.). The unversioned filename is typically the current production version; versioned files represent prior versions retained for backward compatibility or active parallel use (e.g., REDCap study variants).

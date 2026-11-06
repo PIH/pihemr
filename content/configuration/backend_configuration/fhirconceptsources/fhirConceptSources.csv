@@ -1,3 +1,4 @@
 Uuid,Void/Retire,Concept Source,Url,_order:1000
 a7099e7e-a77f-48e6-9fad-aa441bd2df23,,HL7-MedicationDispenseStatus,http://terminology.hl7.org/CodeSystem/medicationdispense-status,
 cf46301e-cd59-4057-aa4b-02eaaff4370c,,LOINC,http://loinc.org,
+e77f3e33-92ba-4043-9cf6-c0920b746c44,,DCM,http://dicom.nema.org/resources/ontology/DCM,

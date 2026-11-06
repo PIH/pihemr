@@ -40,7 +40,7 @@
         <appShellVersion>next</appShellVersion>
         <frontendDir>${project.build.directory}/distro/web/frontend</frontendDir>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <sdkVersion>6.9.0-SNAPSHOT</sdkVersion>
+        <sdkVersion>6.9.0</sdkVersion>
     </properties>
 
     <build>
