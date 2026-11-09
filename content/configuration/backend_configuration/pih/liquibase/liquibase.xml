@@ -1365,4 +1365,30 @@
         </sql>
     </changeSet>
 
+    <!--
+        UHM-9616 (https://pihemr.atlassian.net/browse/UHM-9616): stop FHIR2 sending DICOM modality (DCM) codings
+        on concepts, e.g. in ServiceRequest.code. They aren't quite right: FHIR2 sends at most one code per
+        source and map type, picked arbitrarily (FM2-710), so an X-ray mapped to both CR and DX gets one at
+        random. The AdvaPACS mediator now reads modalities from the concept dictionary itself (REST, by the
+        DCM concept source, which stays).
+
+        The DCM row is removed from fhirConceptSources.csv too, so Initializer doesn't recreate it. It's deleted
+        rather than retired because FHIR2 ignores the retired flag when it looks up a concept source's URL
+        (FhirConceptSourceDaoImpl.getFhirConceptSourceByConceptSource), so a retired one would still be sent.
+        The precondition skips servers that don't have it.
+    -->
+    <changeSet id="20261109-remove-dcm-fhir-concept-source" author="mgoodrich">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                select count(*) from fhir_concept_source where uuid = 'e77f3e33-92ba-4043-9cf6-c0920b746c44';
+            </sqlCheck>
+        </preConditions>
+        <comment>
+            UHM-9616 - Remove the DCM FHIR concept source, so FHIR2 stops sending DICOM modality codings
+        </comment>
+        <sql>
+            delete from fhir_concept_source where uuid = 'e77f3e33-92ba-4043-9cf6-c0920b746c44';
+        </sql>
+    </changeSet>
+
 </databaseChangeLog>
