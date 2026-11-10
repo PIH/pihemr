@@ -546,7 +546,7 @@
                         <render fpMethod="CIEL:190" comment="Condoms"/>
                         <render fpMethod="CIEL:78796" comment="Norplant"/>
                         <render fpMethod="CIEL:5275" comment="IUD"/>
-                        <render fpMethod="CIEL:1472" comment="Tubal ligation"/>
+                        <render fpMethod="CIEL:1472" comment="TubalLigation"/>
                         <render fpMethod="CIEL:1489" comment="Vasectomy"/>
                         <render fpMethod="CIEL:5622" comment="Other"/>
                     </repeat>
