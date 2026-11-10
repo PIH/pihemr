@@ -101,7 +101,7 @@
             jq(function() {
              
                 getField('encounter-date.value').change(function(evt) {
-                    getField('test-date.value').datepicker('option', 'minDate', evt.target.value);
+                    getField('test-date.value').datepicker('option', 'maxDate', evt.target.value);
                 });
                 getField('test-date.value').change(function(evt) {
                     getField('encounter-date.value').datepicker('option', 'maxDate', evt.target.value);
