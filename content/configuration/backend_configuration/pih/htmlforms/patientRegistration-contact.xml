@@ -38,8 +38,16 @@
                 <div>
                     <h3><uimessage code="zl.registration.patient.contactPerson.relationships.label"/></h3>
                     <p class="left">
-                        <obs conceptId="PIH:RELATIONSHIPS OF CONTACT" id="contactRelationship" showUnits="false" unitsCssClass="append-to-value" size="20"/>
-                    </p>
+    <obs conceptId="PIH:RELATIONSHIP OF RELATIVE TO PATIENT"
+     id="contactRelationship"
+     style="dropdown"
+     required="true"
+     showUnits="false"
+     unitsCssClass="append-to-value"
+     answerConceptIds="PIH:2174,PIH:2175,PIH:2179,PIH:2178,PIH:2176,PIH:2177,PIH:5617,PIH:1826"
+     answerCodes="zl.registration.patient.relationship.father.label,zl.registration.patient.relationship.mother.label,zl.registration.patient.relationship.otherRelative.label,zl.registration.patient.relationship.sibling.label,zl.registration.patient.relationship.brother.label,zl.registration.patient.relationship.sister.label,zl.registration.patient.relationship.partnerOrSpouse.label,zl.registration.patient.relationship.guardianRelationshipToChild.label"
+/>
+             </p>
                 </div>
 
                 <div>
