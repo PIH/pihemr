@@ -1,0 +1,494 @@
+#!/usr/bin/env python3
+"""
+Parse OpenMRS HTML Form Entry (HFE) XML files and generate documentation CSVs.
+"""
+import xml.etree.ElementTree as ET
+import csv, re, os
+from pathlib import Path
+
+# ── Concept lookup table (loaded from full_concept_mappings.csv) ───────────────
+
+def _load_concept_lookup():
+    """Build source:code → name mapping from the full concept mappings CSV."""
+    mapping = {}
+    candidates = [
+        Path('/root/.claude/uploads/f31820e9-0c9a-5ce5-8760-1b3e857adf77/80b8362d-full_concept_mappings.csv'),
+        Path('/root/full_concept_mappings.csv'),
+    ]
+    for p in candidates:
+        if p.exists():
+            with open(p, newline='', encoding='utf-8', errors='replace') as f:
+                for row in csv.DictReader(f):
+                    key = row['source'].strip() + ':' + row['code'].strip().strip('"')
+                    name = row['name'].strip()
+                    if key and name and key not in mapping:
+                        mapping[key] = name
+            break
+    return mapping
+
+CONCEPT_LOOKUP = _load_concept_lookup()
+
+HEADERS = [
+    'Question', 'Datatype', 'Possible Answers', 'input type',
+    'required?', 'skip logic?', 'concept for question',
+    'concepts for answers', 'group name (if part of concept group)',
+    'concept group mapping'
+]
+
+# Overrides that take precedence over the lookup table (short display names preferred)
+CONCEPT_LABELS = {
+    'CIEL:1065': 'Yes', 'CIEL:1066': 'No',
+    'CIEL:703': 'Positive', 'CIEL:664': 'Negative', 'CIEL:1138': 'Not tested',
+    'CIEL:1365': '3+', 'CIEL:1364': '2+', 'CIEL:1363': '1+',
+    'CIEL:1362': 'Trace', 'CIEL:159416': 'Trace (alt)',
+    'PIH:YES': 'Yes', 'PIH:NO': 'No', 'PIH:UNKNOWN': 'Unknown',
+    'CIEL:1067': 'Unknown',
+}
+
+STYLE_MAP = {
+    'radio':       ('Coded',   'radio'),
+    'checkbox':    ('Coded',   'checkbox'),
+    'textarea':    ('Text',    'textarea'),
+    'number':      ('Numeric', 'number'),
+    'date':        ('Date',    'date'),
+    'text':        ('Text',    'text'),
+    'select':      ('Coded',   'select'),
+    'autocomplete':('Coded',   'autocomplete'),
+    'dropdown':    ('Coded',   'dropdown'),
+}
+
+# Tags whose subtrees we skip entirely (CSS, JS, etc.)
+SKIP_TAGS = {'style', 'script', 'postSubmissionAction'}
+
+
+# ── Helpers ────────────────────────────────────────────────────────────────────
+
+SECTION_PREFIXES = {
+    'mch', 'lab', 'consult', 'pregnancy', 'vitalsigns', 'appointment',
+    'errors', 'ancfollowup', 'ncd', 'peds', 'palliative', 'sicklecell',
+    'exam', 'visit', 'mchregistration', 'registration',
+}
+
+def humanize(code):
+    """Convert an i18n message code to a readable label."""
+    # If the code contains spaces or parentheses it's a direct label — return as-is
+    if ' ' in code or '(' in code:
+        return code.strip()
+    # Strip top-level i18n namespace prefix
+    for p in ['pihcore.', 'emr.', 'mirebalais.', 'ui.message.', 'ui.']:
+        if code.lower().startswith(p):
+            code = code[len(p):]
+            break
+    # Strip one known section sub-prefix (e.g. 'mch.', 'lab.', 'consult.')
+    parts = code.split('.', 1)
+    if len(parts) > 1 and parts[0].lower() in SECTION_PREFIXES:
+        code = parts[1]
+    # Replace dots/underscores with spaces
+    code = code.replace('.', ' ').replace('_', ' ')
+    # Split camelCase (lowercase → uppercase boundary)
+    code = re.sub(r'([a-z])([A-Z])', r'\1 \2', code)
+    code = code.strip()
+    # Capitalize first character only
+    return code[0].upper() + code[1:] if code else code
+
+def sub(text, ra):
+    """Substitute {var} placeholders from a render-attributes dict."""
+    if not text or not ra:
+        return text
+    for k, v in ra.items():
+        text = text.replace('{' + k + '}', v)
+    return text
+
+def concept_label(cid):
+    """Resolve a concept ID like 'CIEL:1721' to a human-readable label."""
+    # 1. Hard-coded overrides (short display names)
+    if cid in CONCEPT_LABELS:
+        return CONCEPT_LABELS[cid]
+    # 2. Full lookup table from concept mappings CSV
+    if cid in CONCEPT_LOOKUP:
+        return CONCEPT_LOOKUP[cid]
+    # 3. PIH text-based concepts (PIH:ABNORMAL → "Abnormal")
+    if cid.startswith('PIH:'):
+        val = cid[4:]
+        if not val.isdigit():
+            return val.replace('_', ' ').title()
+    # 4. Fall back to raw concept ID
+    return cid
+
+def build_parent_map(root):
+    pm = {}
+    for parent in root.iter():
+        for child in parent:
+            pm[child] = parent
+    return pm
+
+def raw_label(elem):
+    """Return the raw uimessage code or text — no humanizing, no substitution.
+    Used when the label may contain {var} placeholders we need to substitute first."""
+    tag = elem.tag
+    if tag == 'label':
+        # Use iter() to find uimessage even if wrapped in <strong> etc.
+        for desc in elem.iter():
+            if desc.tag == 'uimessage':
+                return desc.get('code', '')
+        return (elem.text or '').strip()
+    if tag == 'uimessage':
+        return elem.get('code', '')
+    if tag in ('h3', 'h4', 'h5', 'h6'):
+        for desc in elem.iter():
+            if desc.tag == 'uimessage':
+                return desc.get('code', '')
+        return (elem.text or '').strip()
+    return ''
+
+def extract_label(elem):
+    """Pull a human-readable label out of a label/uimessage/heading element."""
+    r = raw_label(elem)
+    return humanize(r) if r else ''
+
+def preceding_label(elem, pm, depth=4):
+    """Find a label that precedes elem in the DOM (siblings / ancestor siblings)."""
+    # 1. labelText attribute on the obs itself
+    lt = elem.get('labelText', '')
+    if lt:
+        return lt
+
+    # 2. Traverse up the tree looking at preceding siblings (and their descendants)
+    node = elem
+    for _ in range(depth):
+        parent = pm.get(node)
+        if parent is None:
+            break
+        children = list(parent)
+        try:
+            idx = children.index(node)
+        except ValueError:
+            break
+        for i in range(idx - 1, -1, -1):
+            sib = children[i]
+            lbl = extract_label(sib)
+            if lbl:
+                return lbl
+            # Look 2 levels into sibling's children
+            for sc in sib:
+                lbl = extract_label(sc)
+                if lbl:
+                    return lbl
+                for ssc in sc:
+                    lbl = extract_label(ssc)
+                    if lbl:
+                        return lbl
+        node = parent
+
+    # 3. Last resort for single-answer checkboxes: answerCode / answerConceptId
+    if elem.get('style') == 'checkbox':
+        ac = elem.get('answerCode', '')
+        if ac and '{' not in ac:
+            return ac
+        acid = elem.get('answerConceptId', '')
+        if acid and '{' not in acid and ':' in acid:
+            return acid.split(':')[-1].replace('_', ' ').title()
+
+    return ''
+
+def get_preceding_label_for_elem(elem, pm, depth=4):
+    """Find a label that precedes elem (used for repeat/obs blocks).
+    Walks up the DOM up to `depth` levels to find a preceding sibling label."""
+    node = elem
+    for _ in range(depth):
+        parent = pm.get(node)
+        if parent is None:
+            break
+        children = list(parent)
+        try:
+            idx = children.index(node)
+        except ValueError:
+            break
+        for i in range(idx - 1, -1, -1):
+            sib = children[i]
+            lbl = extract_label(sib)
+            if lbl:
+                return lbl
+            for sc in sib:
+                lbl = extract_label(sc)
+                if lbl:
+                    return lbl
+                for ssc in sc:
+                    lbl = extract_label(ssc)
+                    if lbl:
+                        return lbl
+        node = parent
+    return ''
+
+def skip_logic_str(obs, ra=None):
+    """Build a human-readable skip logic string from <controls><when> elements.
+    ra: render-attribute dict used to substitute {var} placeholders in thenDisplay."""
+    ra = ra or {}
+    controls = obs.find('controls')
+    if controls is None:
+        return 'no'
+    parts = []
+    for w in controls.findall('when'):
+        v = sub(w.get('value', ''), ra)
+        d = sub(w.get('thenDisplay', ''), ra)
+        if v and d:
+            label = concept_label(v) if re.match(r'^(CIEL|PIH):', v) else v
+            parts.append(f'{label} → show {d}')
+    return '; '.join(parts) if parts else 'no'
+
+def make_row(q, dt, ans, inp, req, skip, cq, ca, gn='', cg=''):
+    return dict(zip(HEADERS, [q, dt, ans, inp, req, skip, cq, ca, gn, cg]))
+
+
+# ── Core obs processor ─────────────────────────────────────────────────────────
+
+def obs_row(obs, pm, ra=None, obsgroup=None, group_name='', label_override=''):
+    ra = ra or {}
+    cid   = sub(obs.get('conceptId', ''), ra)
+    raw_style = obs.get('style', '')
+    # Infer date type from date-related attributes when style is absent
+    if not raw_style:
+        if obs.get('allowFutureDates') or obs.get('allowPastDates') or 'date' in cid.lower():
+            raw_style = 'date'
+        else:
+            raw_style = 'radio'
+    style = sub(raw_style, ra)
+    acid  = sub(obs.get('answerConceptId', ''), ra)
+    acids = sub(obs.get('answerConceptIds', ''), ra)
+    acodes= sub(obs.get('answerCodes', ''), ra)
+    acode = sub(obs.get('answerCode', ''), ra)
+
+    if acids:
+        concepts = [c.strip() for c in acids.split(',')]
+    elif acid:
+        concepts = [acid]
+    else:
+        concepts = []
+
+    if acodes:
+        labels = [c.strip().title() for c in acodes.split(',')]
+    elif acode and '{' not in acode:
+        labels = [acode]
+    else:
+        labels = [concept_label(c) for c in concepts]
+
+    possible = (' | '.join(labels)) if labels else ('N/A' if not concepts else ' | '.join(concepts))
+    dt, inp = STYLE_MAP.get(style, ('Coded', style))
+    req = 'Yes' if obs.get('required') == 'true' else 'No'
+    skip = skip_logic_str(obs, ra)
+    q = label_override or preceding_label(obs, pm) or concept_label(cid)
+
+    return make_row(q, dt, possible, inp, req, skip,
+                    cid, '|'.join(concepts), group_name, obsgroup or '')
+
+
+# ── Repeat handler ─────────────────────────────────────────────────────────────
+
+def find_template_label_raw(template_elem):
+    """Return the raw (un-humanized, un-substituted) label code from a template.
+    Callers should substitute {var} placeholders and then call humanize()."""
+    for child in template_elem:
+        r = raw_label(child)
+        if r:
+            return r
+        for sc in child:
+            r = raw_label(sc)
+            if r:
+                return r
+            for ssc in sc:
+                r = raw_label(ssc)
+                if r:
+                    return r
+    return ''
+
+def process_repeat(repeat_elem, pm, obsgroup=None, group_name=''):
+    rows = []
+    template = repeat_elem.find('template')
+    renders  = repeat_elem.findall('render')
+    if template is None or not renders:
+        return rows
+
+    t_obs_list = template.findall('.//obs')
+    if not t_obs_list:
+        return rows
+
+    # Detect obsgroup inside template
+    t_obsgroup_elem = template.find('.//obsgroup')
+    og_concept = (t_obsgroup_elem.get('groupingConceptId', '')
+                  if t_obsgroup_elem is not None else (obsgroup or ''))
+
+    # Find a label: preceding sibling of the repeat, or from template
+    prec_label  = get_preceding_label_for_elem(repeat_elem, pm)
+    t_label_raw = find_template_label_raw(template)
+    # For grouped rows use the humanized base label (no {var} placeholders)
+    t_label_base = humanize(t_label_raw) if (t_label_raw and '{' not in t_label_raw) else ''
+    section_label = group_name or prec_label or t_label_base
+
+    for t_obs in t_obs_list:
+        cid_tpl  = t_obs.get('conceptId', '')
+        acid_tpl = t_obs.get('answerConceptId', '')
+        acids_tpl= t_obs.get('answerConceptIds', '')
+        style    = t_obs.get('style', 'radio')
+
+        concept_varies = '{' in cid_tpl
+        answer_varies  = ('{' in acid_tpl) or ('{' in acids_tpl)
+
+        if answer_varies and not concept_varies:
+            # Grouped: same concept, different answer per render → ONE row
+            all_ans_labels   = []
+            all_ans_concepts = []
+            for render in renders:
+                ra = render.attrib
+                if acid_tpl:
+                    ac = sub(acid_tpl, ra)
+                else:
+                    ac = sub(acids_tpl, ra)
+                al = ra.get('hint', ra.get('name', ra.get('answerCode', concept_label(ac))))
+                all_ans_labels.append(al)
+                all_ans_concepts.append(ac)
+
+            dt, inp = STYLE_MAP.get(style, ('Coded', style))
+            q = section_label or concept_label(cid_tpl)
+            rows.append(make_row(q, dt,
+                                 ' | '.join(all_ans_labels), inp, 'No', 'no',
+                                 cid_tpl, '|'.join(all_ans_concepts),
+                                 q, og_concept))
+        else:
+            # Individual: concept (or answers) varies per render → one row per render
+            for render in renders:
+                ra = render.attrib
+                lbl = (ra.get('words') or ra.get('name') or ra.get('hint')
+                       or ra.get('answerCode') or '')
+                if not lbl and t_label_raw:
+                    # Substitute render vars into the raw template label, THEN humanize
+                    lbl = humanize(sub(t_label_raw, ra))
+                row = obs_row(t_obs, pm, ra=ra,
+                              obsgroup=og_concept, group_name='',
+                              label_override=lbl)
+                rows.append(row)
+
+    return rows
+
+
+# ── Tree walker ────────────────────────────────────────────────────────────────
+
+def walk(elem, rows, pm, obsgroup=None, group_name=''):
+    tag = elem.tag
+
+    if tag in SKIP_TAGS:
+        return
+
+    # ── Encounter header fields ──────────────────────────
+    if tag == 'encounterDate':
+        rows.append(make_row('Encounter Date', 'Date', 'N/A', 'date/time',
+                             'Yes', 'no', 'encounterDate', ''))
+        return
+    if tag == 'encounterProvider':
+        rows.append(make_row('Encounter Provider', 'Provider',
+                             'List of available providers', 'provider select',
+                             'Yes', 'no', '', ''))
+        return
+    if tag == 'encounterLocation':
+        rows.append(make_row('Encounter Location', 'Location',
+                             'List of available locations', 'location select',
+                             'Yes', 'no', '', ''))
+        return
+
+    # ── Widgets ──────────────────────────────────────────
+    if tag == 'encounterDiagnosesByObs':
+        rows.append(make_row('Diagnoses (encounterDiagnosesByObs)', 'Other',
+                             'Pick diagnoses', 'diagnoses widget',
+                             'No', 'no', '', ''))
+        return
+    if tag == 'encounterDisposition':
+        rows.append(make_row('Disposition', 'Other', 'Disposition widget',
+                             'disposition widget', 'Yes', 'no', '', ''))
+        return
+    if tag == 'scheduleAppointment':
+        rows.append(make_row('Next appointment date', 'Other',
+                             'Schedule appointment widget', 'scheduleAppointment',
+                             'No', 'no', '', ''))
+        return
+    if tag == 'drugOrder':
+        rows.append(make_row('Drug order', 'Other', 'Drug order widget',
+                             'drug-order', 'No', 'no', '', ''))
+        return
+
+    # ── Subforms ─────────────────────────────────────────
+    if tag == 'subform':
+        path = elem.get('path', '')
+        name = os.path.basename(path)
+        rows.append(make_row(f'Subform: {name}', 'Other',
+                             f'Subform — {path}', 'subform',
+                             'No', 'no', '', ''))
+        return
+
+    # ── Repeat ───────────────────────────────────────────
+    if tag == 'repeat':
+        repeat_rows = process_repeat(elem, pm, obsgroup=obsgroup, group_name=group_name)
+        rows.extend(repeat_rows)
+        return
+
+    # ── Obsgroup ─────────────────────────────────────────
+    if tag == 'obsgroup':
+        og = elem.get('groupingConceptId', '') or obsgroup or ''
+        gn = get_preceding_label_for_elem(elem, pm) or group_name
+        for child in elem:
+            walk(child, rows, pm, obsgroup=og, group_name=gn)
+        return
+
+    # ── Single obs ───────────────────────────────────────
+    if tag == 'obs':
+        row = obs_row(elem, pm, obsgroup=obsgroup, group_name=group_name)
+        rows.append(row)
+        return
+
+    # ── Generic container: recurse ───────────────────────
+    for child in elem:
+        walk(child, rows, pm, obsgroup=obsgroup, group_name=group_name)
+
+
+# ── File-level functions ───────────────────────────────────────────────────────
+
+def parse_xml(filepath):
+    rows = []
+    try:
+        tree = ET.parse(str(filepath))
+        root = tree.getroot()
+    except ET.ParseError as e:
+        return [make_row(f'PARSE ERROR: {e}', '', '', '', '', '', '', '')]
+    pm = build_parent_map(root)
+    walk(root, rows, pm)
+    return rows
+
+def write_csv(rows, out_path):
+    with open(out_path, 'w', newline='', encoding='utf-8') as f:
+        writer = csv.DictWriter(f, fieldnames=HEADERS)
+        writer.writeheader()
+        writer.writerows(rows)
+
+
+# ── Main ───────────────────────────────────────────────────────────────────────
+
+if __name__ == '__main__':
+    import sys
+    xml_dir    = sys.argv[1] if len(sys.argv) > 1 else '.'
+    output_dir = sys.argv[2] if len(sys.argv) > 2 else './csv_output'
+
+    Path(output_dir).mkdir(parents=True, exist_ok=True)
+    xml_files = sorted(Path(xml_dir).glob('*.xml'))
+    print(f'Processing {len(xml_files)} XML files → {output_dir}')
+
+    errors = []
+    for xml_file in xml_files:
+        out = Path(output_dir) / (xml_file.stem + '.csv')
+        rows = parse_xml(xml_file)
+        write_csv(rows, out)
+        status = '⚠' if any('PARSE ERROR' in (r.get('Question','')) for r in rows) else '✓'
+        print(f'  {status} {xml_file.name} ({len(rows)} rows)')
+        if status == '⚠':
+            errors.append(xml_file.name)
+
+    print(f'\nDone. {len(xml_files)} CSVs written to {output_dir}/')
+    if errors:
+        print(f'Parse errors in: {errors}')
