@@ -1708,11 +1708,23 @@ angular.module("encounterTypeConfig", [])
 
         // admission
         encounterTypes["260566e1-c909-4d61-a96f-c1019291a09d"] = {
-            defaultState: "short",
-            shortTemplate: "templates/encounters/defaultEncounterShort.page",
-            longTemplate: "templates/encounters/admissionLong.page",
-            icon: "fas fa-fw fa-sign-in-alt",
-            editUrl: hfeStandardEditUrl
+            DEFAULT: {
+                defaultState: "short",
+                shortTemplate: "templates/encounters/defaultEncounterShort.page",
+                longTemplate: "templates/encounters/admissionLong.page",
+                icon: "fas fa-fw fa-sign-in-alt",
+                editUrl: hfeStandardEditUrl
+            },
+            // Sierra Leone's admission forms (Maternal Admission, Newborn Admission) record more than the diagnoses
+            // (notes, pregnancy group), so show the view of the form the encounter was saved with
+            "sierra_leone": {
+                defaultState: "short",
+                shortTemplate: "templates/encounters/defaultEncounterShort.page",
+                longTemplate: "templates/encounters/viewEncounterWithHtmlFormLong.page",
+                templateModelUrl: "/htmlformentryui/htmlform/viewEncounterWithHtmlForm/getAsHtml.action?encounterId={{encounter.uuid}}",
+                icon: "fas fa-fw fa-sign-in-alt",
+                editUrl: hfeStandardEditUrl
+            }
         };
 
         // cancelAdmission
