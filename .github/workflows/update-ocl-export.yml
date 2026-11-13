@@ -26,7 +26,7 @@ name: Update OCL export
 # Then it load-tests the new export on a real OpenMRS database (scripts/ocl-load-test.sh): it builds
 # pihemr and the ZL EMR distribution with the new export, starts them on a copy of the nightly ZL seed
 # database (partnersinhealth/zl-emr-seed-haiti), and checks that the OCL import finished without
-# errors. That takes about 15-30 minutes; "Skip the load test" skips it (the PR will say so).
+# errors. That takes about 5-10 minutes; "Skip the load test" skips it (the PR will say so).
 # DOCKERHUB_PASSWORD (the pihci account's) avoids Docker Hub pull limits; without it, images are pulled anonymously.
 #
 # Could also run on a schedule (e.g. daily) to open a PR whenever a new version
@@ -56,7 +56,7 @@ on:
         required: false
         default: false
       skip_load_test:
-        description: "Skip testing against a real OpenMRS database (takes about 15-30 minutes; the PR will say it was skipped)"
+        description: "Skip testing against a real OpenMRS database (takes about 5-10 minutes; the PR will say it was skipped)"
         type: boolean
         required: false
         default: false
@@ -173,7 +173,7 @@ jobs:
       always() && github.repository_owner == 'PIH' &&
       (needs.release.result == 'success' || needs.release.result == 'skipped')
     runs-on: ubuntu-latest
-    # Up to 20 minutes waiting for OCL to build the export, plus about 15-30 for the load test, with room to spare
+    # Up to 20 minutes waiting for OCL to build the export, plus about 5-10 for the load test, with room to spare
     timeout-minutes: 120
     env:
       OCL_API: https://api.openconceptlab.org/orgs/PIH/sources/PIH
