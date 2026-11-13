@@ -71,6 +71,7 @@ WORK_DIR=$(mktemp -d "${TMPDIR:-/tmp}/ocl-load-test.XXXXXX")
 RESULT="could not run"
 DETAILS=""
 INSTANCE_CREATED=false
+TEST_IMAGE=""
 
 log() { echo "[ocl-load-test] $*"; }
 
@@ -93,8 +94,9 @@ finish() {
     } > "$SUMMARY_MD"
   fi
   if [ "$INSTANCE_CREATED" = true ] && [ "$KEEP_RUNNING" != true ]; then
-    log "Stopping $INSTANCE (its volumes are kept; remove it with: openmrs-docker $INSTANCE destroy)"
+    log "Stopping $INSTANCE and removing its test image $TEST_IMAGE (its volumes are kept; remove it with: openmrs-docker $INSTANCE destroy, or start it again with: openmrs-docker $INSTANCE start --build)"
     "$OD" "$INSTANCE" stop >/dev/null 2>&1 || true
+    docker image rm "$TEST_IMAGE" >/dev/null 2>&1 || true
   fi
   rm -rf "$WORK_DIR"
   exit "$status"
@@ -162,7 +164,11 @@ free_port() { python3 -I -c 'import socket; s=socket.socket(); s.bind(("",0)); p
 export OPENMRS_HTTP_PORT="${OPENMRS_HTTP_PORT:-$(free_port)}"
 export OPENMRS_DB_PORT="${OPENMRS_DB_PORT:-$(free_port)}"
 export OPENMRS_DEBUG_PORT="${OPENMRS_DEBUG_PORT:-$(free_port)}"
-export OPENMRS_IMAGE_NAME=partnersinhealth/zl-emr
+# Build under a local-only name, so a developer's partnersinhealth/zl-emr:latest isn't replaced
+# by this test build. The image is removed at the end.
+export OPENMRS_IMAGE_NAME=ocl-load-test/zl-emr
+export OPENMRS_IMAGE_TAG="$INSTANCE"
+TEST_IMAGE="$OPENMRS_IMAGE_NAME:$OPENMRS_IMAGE_TAG"
 export OPENMRS_PIH_CONFIG="$PIH_CONFIG"
 export OPENMRS_DISTRO_DIR="$ZL_EMR_DIR"
 # Keeps MySQL within the 7 GB GitHub runner, as the smoke tests do
@@ -174,6 +180,10 @@ fi
 log "Creating instance $INSTANCE from $SEED_IMAGE (OpenMRS on port $OPENMRS_HTTP_PORT)"
 "$OD" "$INSTANCE" create || cant_run "couldn't create instance $INSTANCE"
 INSTANCE_CREATED=true
+# initialize looks in the OpenMRS image to see which user owns its data, before we've built ours.
+# Give it the published image under the test name; it runs as the same user, and the build replaces it.
+docker pull -q partnersinhealth/zl-emr:latest >/dev/null || cant_run "couldn't pull partnersinhealth/zl-emr:latest"
+docker tag partnersinhealth/zl-emr:latest "$TEST_IMAGE" || cant_run "couldn't tag $TEST_IMAGE"
 "$OD" "$INSTANCE" initialize --from-image "$SEED_IMAGE" --pull || cant_run "couldn't restore $SEED_IMAGE"
 
 log "Building the ZL EMR distribution and starting it (the OCL import runs during startup)"
