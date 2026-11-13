@@ -23,6 +23,12 @@ name: Update OCL export
 # that would break the OpenMRS import, UHM-9656), the run fails and no PR is opened.
 # The same check is what the "ocl" Claude skill runs before a release; see that plugin's README.
 #
+# Then it load-tests the new export on a real OpenMRS database (scripts/ocl-load-test.sh): it builds
+# pihemr and the ZL EMR distribution with the new export, starts them on a copy of the nightly ZL seed
+# database (partnersinhealth/zl-emr-seed-haiti), and checks that the OCL import finished without
+# errors. That takes about 15-30 minutes; "Skip the load test" skips it (the PR will say so).
+# DOCKERHUB_PASSWORD (the pihci account's) avoids Docker Hub pull limits; without it, images are pulled anonymously.
+#
 # Could also run on a schedule (e.g. daily) to open a PR whenever a new version
 # is released in OCL, by adding:
 #   schedule:
@@ -46,6 +52,11 @@ on:
         default: ""
       skip_release_check:
         description: "Skip the release check (emergencies only; the PR will say it was skipped)"
+        type: boolean
+        required: false
+        default: false
+      skip_load_test:
+        description: "Skip testing against a real OpenMRS database (takes about 15-30 minutes; the PR will say it was skipped)"
         type: boolean
         required: false
         default: false
@@ -162,9 +173,12 @@ jobs:
       always() && github.repository_owner == 'PIH' &&
       (needs.release.result == 'success' || needs.release.result == 'skipped')
     runs-on: ubuntu-latest
+    # Up to 20 minutes waiting for OCL to build the export, plus about 15-30 for the load test, with room to spare
+    timeout-minutes: 120
     env:
       OCL_API: https://api.openconceptlab.org/orgs/PIH/sources/PIH
       OCL_DIR: content/configuration/backend_configuration/ocl
+      DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
     steps:
       - uses: actions/checkout@v4
 
@@ -285,6 +299,56 @@ jobs:
             *) echo "::error::The release check couldn't run (exit $status). No PR was opened."; exit 1 ;;
           esac
 
+      - name: Set up Java for the load test
+        if: steps.export.outputs.changed == 'true' && !inputs.skip_load_test
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 8
+          cache: maven
+
+      - name: Log in to Docker Hub
+        if: steps.export.outputs.changed == 'true' && !inputs.skip_load_test && env.DOCKERHUB_PASSWORD != ''
+        uses: docker/login-action@v4
+        with:
+          username: pihci
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+
+      - name: Load-test the export on a real OpenMRS database
+        id: loadtest
+        if: steps.export.outputs.changed == 'true'
+        env:
+          SKIP: ${{ inputs.skip_load_test }}
+        run: |
+          set -uo pipefail
+          summary="$RUNNER_TEMP/load-test.md"
+          if [ "$SKIP" = "true" ]; then
+            printf '### OCL export load test: ⚠️ SKIPPED\n\nThe load test on a real OpenMRS database was skipped when this workflow was run (skip_load_test). Test this export before merging.\n' > "$summary"
+            status=0
+          else
+            scripts/ocl-load-test.sh --summary-md "$summary" --openmrs-log "$RUNNER_TEMP/openmrs.log"
+            status=$?
+          fi
+          [ -f "$summary" ] && cat "$summary" >> "$GITHUB_STEP_SUMMARY"
+          {
+            echo "summary<<EOF_SUMMARY"
+            cat "$summary" 2>/dev/null || echo "(no summary)"
+            echo "EOF_SUMMARY"
+          } >> "$GITHUB_OUTPUT"
+          case "$status" in
+            0) ;;
+            1) echo "::error::${{ steps.export.outputs.version }} didn't load cleanly on a real OpenMRS database (see the summary). No PR was opened."; exit 1 ;;
+            *) echo "::error::The load test couldn't run (exit $status). No PR was opened. Run this again, or tick 'Skip the load test' and test the export yourself."; exit 1 ;;
+          esac
+
+      - name: Upload the OpenMRS log from the load test
+        if: always() && steps.export.outputs.changed == 'true' && !inputs.skip_load_test
+        uses: actions/upload-artifact@v7
+        with:
+          name: ocl-load-test-openmrs-log
+          path: ${{ runner.temp }}/openmrs.log
+          if-no-files-found: ignore
+
       - name: Open pull request
         if: steps.export.outputs.changed == 'true'
         uses: peter-evans/create-pull-request@v7
@@ -305,5 +369,7 @@ jobs:
             ${{ needs.release.outputs.check_summary }}
 
             ${{ steps.check.outputs.summary }}
+
+            ${{ steps.loadtest.outputs.summary }}
 
             Requested by @${{ github.actor }} via the "Update OCL export" workflow.
