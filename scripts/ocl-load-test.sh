@@ -9,8 +9,7 @@
 # It passes if Initializer loads the new export and the OCL module records no errors.
 #
 # Used by the "Update OCL export" GitHub Action and by the PIH "ocl" Claude skill, so both run
-# exactly the same test. It takes about 10-20 minutes on a developer machine with Maven and Docker
-# caches warm, and about 15-30 minutes on a fresh GitHub runner.
+# exactly the same test. It takes about 5-10 minutes (5 1/2 on a GitHub runner for 1.8.58).
 #
 # Needs: Docker, Java 8, Maven, git, unzip, jq, python3.
 #
