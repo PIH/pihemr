@@ -1,0 +1,319 @@
+<!-- Review of System Section -->
+<div class="review-of-systems-subform">
+
+    <style type="text/css">
+        <ifMode mode="VIEW" include="true">
+
+            .toggle-div {
+                background-color: #F2F2F2;
+                color: #003F5E;
+                font-weight: bold;
+                font-size: large;
+                padding: 5px 0px 0px 0px;
+            }
+
+            .collapsible-content {
+                overflow: visible;
+                transition: max-height 0.5s ease-out;
+                max-height: none;
+            }
+
+            .collapsible-content.open {
+                max-height: none; /* Allows the height to adjust automatically */
+            }
+        </ifMode>
+    </style>
+
+    <div class="section-container">
+
+            <div class="toggle-div">
+                <uimessage code="Cardiovascular"/>
+            </div>
+            <div class="collapsible-content">
+                <div>
+                    <repeat>
+                        <template>
+                            <obs conceptId="PIH:1124" style="checkbox"
+                                 answerConceptId="CIEL:{acID}"
+                                 answerCode="{name}"/>
+                        </template>
+                        <render acID="120749" name="Chest pain"/>
+                        <render acID="124665" name="Chest tightness"/>
+                        <render acID="130987" name="Palpatations"/>
+                        <render acID="136522" name="Irregular heartbeat"/>
+                        <render acID="141599" name="Dyspnea on exertion"/>
+                        <render acID="131689" name="Orthopnea"/>
+                        <render acID="118729" name="Lower extremity edema"/>
+                        <render acID="116734" name="Claudication"/>
+                        <render acID="125166" name="Syncope"/>
+                        <render acID="111017" name="Presyncope/ lightheadedness"/>
+                    </repeat>
+
+                    <obs conceptId="PIH:1124" style="checkbox"
+                         answerConceptId="PIH:13761" answerLabel="Other cardiovascular (comment)"
+                         commentFieldLabel=" "/>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-container">
+            <div class="toggle-div">
+                <uimessage code="Constitutional"/>
+            </div>
+            <div class="collapsible-content">
+                <div>
+                    <repeat>
+                        <template>
+                            <obs conceptId="PIH:1119" style="checkbox"
+                                 answerConceptId="CIEL:{acID}"
+                                 answerCode="{name}"/>
+                        </template>
+                        <render acID="140238" name="Fever"/>
+                        <render acID="871" name="Chills"/>
+                        <render acID="133027" name="Night sweats"/>
+                        <render acID="140501" name="Fatigue"/>
+                        <render acID="116130" name="Malaise"/>
+                        <render acID="832" name="Weight loss"/>
+                        <render acID="5226" name="Weakness"/>
+                        <render acID="116743" name="Insomnia"/>
+                    </repeat>
+
+                    <obs conceptId="PIH:1119" style="checkbox"
+                         answerConceptId=" PIH:5622" answerLabel="Other Constitutional (comment)"
+                         commentFieldLabel=" "/>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-container">
+            <div class="toggle-div">
+                <uimessage code="Endocrine"/>
+            </div>
+            <div class="collapsible-content">
+                <div>
+                    <repeat>
+                        <template>
+                            <obs conceptId="PIH:21630" style="checkbox"
+                                 answerConceptId="CIEL:{acID}"
+                                 answerCode="{name}"/>
+                        </template>
+                        <render acID="136669" name="Heat intolerance"/>
+                        <render acID="136670" name="Cold intolerance"/>
+                        <render acID="129510" name="Polyuria"/>
+                        <render acID="118483" name="Polyphagia"/>
+                        <render acID="5544"   name="Weight gain"/>
+                        <render acID="832"    name="Weight loss"/>
+                        <render acID="121681" name="Hair loss"/>
+                        <render acID="138166" name="Excess hair growth"/>
+                        <render acID="170829" name="Skin changes"/>
+                        <render acID="145759" name="Voice changes"/>
+                    </repeat>
+
+                    <obs conceptId="PIH:21630" style="checkbox"
+                         answerConceptId=" PIH:13764" answerLabel="Other endocrine (comment)"
+                         commentFieldLabel=" "/>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-container">
+            <div class="toggle-div">
+                <uimessage code="Gastrointestinal"/>
+            </div>
+            <div class="collapsible-content">
+                <div>
+                    <repeat>
+                        <template>
+                            <obs conceptId="PIH:1125" style="checkbox"
+                                 answerConceptId="CIEL:{acID}"
+                                 answerCode="{name}"/>
+                        </template>
+                        <render acID="151" name="Abdominal pain"/>
+                        <render acID="5978" name="Nausea"/>
+                        <render acID="122983" name="Vomiting"/>
+                        <render acID="142412" name="Diarrhea"/>
+                        <render acID="996" name="Constipation"/>
+                        <render acID="139059" name="Heartburn"/>
+                        <render acID="1293" name="Reflux"/>
+                        <render acID="118789" name="Dysphagia"/>
+                        <render acID="6031" name="Decreased appetite"/>
+                        <render acID="139006" name="Hematemesis"/>
+                        <render acID="134394" name="Melaena"/>
+                        <render acID="117671" name="Hematochezia"/>
+                        <render acID="150919" name="Bloating"/>
+                        <render acID="170845" name="Early satiety"/>
+                        <render acID="149043" name="Change in bowel habits"/>
+                        <render acID="136443" name="Jaundice"/>
+                    </repeat>
+
+                    <obs conceptId="PIH:1125" style="checkbox"
+                         answerConceptId=" PIH:13757" answerLabel="Other gastrointestinal (comment)"
+                         commentFieldLabel=" "/>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-container">
+            <div class="toggle-div">
+                <uimessage code="Genitourinary"/>
+            </div>
+            <div class="collapsible-content">
+                <div>
+                    <repeat>
+                        <template>
+                            <obs conceptId="PIH:1126" style="checkbox"
+                                 answerConceptId="CIEL:{acID}"
+                                 answerCode="{name}"/>
+                        </template>
+                        <render acID="118771" name="Dysuria"/>
+                        <render acID="137593" name="Urinary frequency"/>
+                        <render acID="159253" name="Urinary urgency"/>
+                        <render acID="840" name="Hematuria"/>
+                        <render acID="864" name="Genital lesions"/>
+                        <render acID="111636" name="Urinary incontinence"/>
+                        <render acID="152288" name="Perineal pain"/>
+                        <render acID="142247" name="Penile discharge"/>
+                        <render acID="116123" name="Erectile dysfunction"/>
+                        <render acID="131030" name="Testicular pain"/>
+                        <render acID="125203" name="Scrotal swelling"/>
+                    </repeat>
+
+                    <obs conceptId="PIH:1126" style="checkbox"
+                         answerConceptId=" PIH:13759" answerLabel="Other genitourinary (comment)"
+                         commentFieldLabel=" "/>
+                </div>
+            </div>
+        </div>
+
+        <!-- only show these diseases if female -->
+        <includeIf velocityTest="$patient.gender == 'F' ">
+            <div class="section-container">
+                <div class="toggle-div">
+                    <uimessage code="Gynecologic"/>
+                </div>
+                <div class="collapsible-content">
+                    <div>
+                        <repeat>
+                            <template>
+                                <obs conceptId="PIH:13229" style="checkbox"
+                                     answerConceptId="CIEL:{acID}"
+                                     answerCode="{name}"/>
+                            </template>
+                            <render acID="131034" name="Pelvic pain"/>
+                            <render acID="123395" name="Vaginal discharge"/>
+                            <render acID="128311" name="Vaginal itching"/>
+                            <render acID="150802" name="Abnormal vaginal bleeding"/>
+                            <render acID="127" name="Dysmenorrhea"/>
+                            <render acID="141615" name="Dyspareunia"/>
+                            <render acID="148989" name="Amenorrhea"/>
+                            <render acID="134349" name="Hot flashes"/>
+                            <render acID="131021" name="Breast pain / Mastodynia"/>
+                            <render acID="146931" name="Breast mass / Breast Lump"/>
+                            <render acID="142248" name="Nipple discharge"/>
+                        </repeat>
+
+                        <obs conceptId="PIH:13229" style="checkbox"
+                             answerConceptId=" PIH:13231" answerLabel="Other gynecological (comment)"
+                             commentFieldLabel=" "/>
+                    </div>
+                </div>
+            </div>
+        </includeIf>
+
+        <div class="section-container">
+            <div class="toggle-div">
+                <uimessage code="Musculoskeletal"/>
+            </div>
+            <div class="collapsible-content">
+                <div>
+                    <obs conceptId="PIH:1128" style="checkbox" answerConceptId="PIH:80" answerCode="Joint pain"/>
+                    <obs conceptId="PIH:1128" style="checkbox" answerConceptId="PIH:5312" answerCode="Joint swelling"/>
+
+                    <repeat>
+                        <template>
+                            <obs conceptId="PIH:1128" style="checkbox"
+                                 answerConceptId="CIEL:{acID}"
+                                 answerCode="{name}"/>
+                        </template>
+                        <render acID="116554" name="Joint stiffness"/>
+                        <render acID="133632" name="Muscle pain"/>
+                        <render acID="115476" name="Muscle weakness"/>
+                        <render acID="133469" name="Neck pain"/>
+                        <render acID="5108" name="Gait difficulty"/>
+                    </repeat>
+
+                    <obs conceptId="PIH:1128" style="checkbox" answerConceptId="PIH:456" answerCode="Back pain"/>
+                    <obs conceptId="PIH:1128" style="checkbox" answerConceptId="PIH:7335"
+                         answerCode="Limited range of motion"/>
+
+                    <obs conceptId="PIH:1128" style="checkbox"
+                         answerConceptId="PIH:10481" answerLabel="Other musculoskeletal (comment)"
+                         commentFieldLabel=" "/>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-container">
+            <div class="toggle-div">
+                <uimessage code="Neurologic"/>
+            </div>
+            <div class="collapsible-content">
+                <div>
+                    <repeat>
+                        <template>
+                            <obs conceptId="PIH:1129" style="checkbox"
+                                 answerConceptId="CIEL:{acID}"
+                                 answerCode="{name}"/>
+                        </template>
+                        <render acID="139084" name="Headache"/>
+                        <render acID="141831" name="Dizziness"/>
+                        <render acID="111525" name="vertigo"/>
+                        <render acID="125166" name="Syncope"/>
+                        <render acID="206" name="Seizures"/>
+                        <render acID="130182" name="Tingling"/>
+                        <render acID="5226" name="Focal weakness"/>
+                        <render acID="112200" name="Tremor"/>
+                        <render acID="121657" name="Memory changes"/>
+                        <render acID="120345" name="Confusion"/>
+                        <render acID="123074" name="Vision changes"/>
+                    </repeat>
+
+                    <obs conceptId="PIH:1129" style="checkbox" answerConceptId="PIH:12248" answerCode="Numbness"/>
+                    <obs conceptId="PIH:1129" style="checkbox" answerConceptId="PIH:20586" answerCode="Speech difficulty"/>
+
+                    <obs conceptId="PIH:1129" style="checkbox"
+                         answerConceptId=" PIH:13765" answerLabel="Other neurologic (comment)"
+                         commentFieldLabel=" "/>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-container">
+            <div class="toggle-div">
+                <uimessage code="Respiratory"/>
+            </div>
+            <div class="collapsible-content">
+                <div>
+                    <repeat>
+                        <template>
+                            <obs conceptId="PIH:1123" style="checkbox"
+                                 answerConceptId="CIEL:{acID}"
+                                 answerCode="{name}"/>
+                        </template>
+                        <render acID="141600" name="Shortness of breath"/>
+                        <render acID="143264" name="Cough"/>
+                        <render acID="5957"   name="Productive cough"/>
+                        <render acID="138905" name="Hemoptysis"/>
+                        <render acID="5209"   name="Wheezing"/>
+                        <render acID="130051" name="Pleuritic chest pain"/>
+                        <render acID="126318" name="Snoring"/>
+                        <render acID="170838" name="Witnessed apneas"/>
+                    </repeat>
+
+                    <obs conceptId="PIH:1123" style="checkbox"
+                         answerConceptId=" PIH:13758" answerLabel="Other respiratory (comment)"
+                         commentFieldLabel=" "/>
+                </div>
+            </div>
+        </div>
+</div>

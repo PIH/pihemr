@@ -1153,6 +1153,42 @@ angular.module("encounterTypeConfig", [])
             ]
         };
 
+        // lesothoMDRTBTbIntake
+        encounterTypes["f48a79ff-d0ea-4ee2-8c4b-71b4a6e6ebe8"] = {
+            defaultState: "short",
+            shortTemplate: "templates/encounters/defaultEncounterShort.page",
+            longTemplate: "templates/encounters/defaultEncounterShort.page",  // no expanded view, instead there are individual sections
+            icon: "fas fa-fw fa-wind",
+            editUrl: hfeStandardEditUrl,
+            showOnVisitList: true,
+            sections: [
+                primaryCareHistory,
+                reviewOfSystems,
+                generalVaccinations,
+                pedsFoodAndSupplements,
+                primaryCareDx,
+                primaryCarePlan
+            ]
+        };
+
+        // lesothoMDRTbFollowup
+        encounterTypes["131e3b40-bdbb-4b6f-bcb6-ab899b8a0f48"] = {
+            defaultState: "short",
+            shortTemplate: "templates/encounters/defaultEncounterShort.page",
+            longTemplate: "templates/encounters/defaultEncounterShort.page",  // no expanded view, instead there are individual sections
+            icon: "fas fa-fw fa-wind",
+            editUrl: hfeStandardEditUrl,
+            showOnVisitList: true,
+            sections: [
+                chiefComplaint,
+                reviewOfSystems,
+                generalVaccinations,
+                pedsFoodAndSupplements,
+                primaryCareDx,
+                primaryCarePlan
+            ]
+        };
+
         // ncdInitialConsult
         encounterTypes["ae06d311-1866-455b-8a64-126a9bd74171"] = {
             DEFAULT: {

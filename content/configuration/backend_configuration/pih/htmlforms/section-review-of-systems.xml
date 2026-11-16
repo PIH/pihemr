@@ -1,0 +1,31 @@
+<htmlform formUuid="1c57f8d3-65eb-4619-a375-7612b79a7b13" formName="Review of Systems" formVersion="1.0">
+
+    <ifMode mode="VIEW" include="false">
+        <h3>
+            <uimessage code="Review of Systems"/>
+        </h3>
+
+        <script type="text/javascript">
+            jq(document).ready(function() {
+                // handlers for next and submit buttons, see nextAndSubmitButtons.js
+                setUpNextAndSubmitButtons();
+            });
+        </script>
+    </ifMode>
+
+    <!-- Review of System Section -->
+    <section id="review-of-systems" sectionTag="fieldset" headerTag="legend" headerStyle="title"
+             headerCode="Review of Systems">
+        <subform path="configuration/pih/subforms/review-of-systems.xml" />
+
+    </section>
+
+    <ifMode mode="VIEW" include="false">
+        <div id="buttons">
+            <button id="next" type="button" class="submitButton confirm right"><uimessage code="emr.next"/><i class="icon-spinner icon-spin icon-2x" style="display: none; margin-left: 10px;"></i></button>
+            <button id="submit" class="submitButton confirm right"><uimessage code="mirebalais.save"/><i class="icon-spinner icon-spin icon-2x" style="display: none; margin-left: 10px;"></i></button>
+            <button id="cancel" type="button" class="cancel"><uimessage code="emr.cancel"/></button>
+        </div>
+    </ifMode>
+
+</htmlform>
