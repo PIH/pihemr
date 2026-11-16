@@ -1153,6 +1153,18 @@ angular.module("encounterTypeConfig", [])
             ]
         };
 
+        var tbHistory = {
+            type: "encounter-section",
+            id: "tb-history",
+            label: "pihcore.history.label",
+            icon: "fas fa-fw fa-history",
+            classes: "indent",
+            shortTemplate: "templates/sections/primaryCareHistorySectionShort.page",
+            longTemplate: "templates/sections/viewSectionWithHtmlFormLong.page",
+            templateModelUrl: "/htmlformentryui/htmlform/viewEncounterWithHtmlForm/getAsHtml.action?encounterId={{encounter.uuid}}&definitionUiResource=" + getFormResource("section-tb-history.xml"),
+            editUrl: "/htmlformentryui/htmlform/editHtmlFormWithStandardUi.page?patientId={{visit.patient.uuid}}&visitId={{visit.uuid}}&encounterId={{encounter.uuid}}&definitionUiResource=" + getFormResource("section-tb-history.xml") + "&returnUrl={{returnUrl}}&breadcrumbOverride={{breadcrumbOverride}}"
+        };
+
         // lesothoMDRTBTbIntake
         encounterTypes["f48a79ff-d0ea-4ee2-8c4b-71b4a6e6ebe8"] = {
             defaultState: "short",
@@ -1162,10 +1174,9 @@ angular.module("encounterTypeConfig", [])
             editUrl: hfeStandardEditUrl,
             showOnVisitList: true,
             sections: [
-                primaryCareHistory,
+                tbHistory,
                 reviewOfSystems,
                 generalVaccinations,
-                pedsFoodAndSupplements,
                 primaryCareDx,
                 primaryCarePlan
             ]
