@@ -163,10 +163,14 @@ free_port() { python3 -I -c 'import socket; s=socket.socket(); s.bind(("",0)); p
 export OPENMRS_HTTP_PORT="${OPENMRS_HTTP_PORT:-$(free_port)}"
 export OPENMRS_DB_PORT="${OPENMRS_DB_PORT:-$(free_port)}"
 export OPENMRS_DEBUG_PORT="${OPENMRS_DEBUG_PORT:-$(free_port)}"
-# Build under a throwaway tag (the instance name), so a developer's partnersinhealth/zl-emr:latest
-# isn't replaced by this test build. The image is removed at the end.
+# Build under a throwaway tag, so a developer's partnersinhealth/zl-emr:latest (or any other real
+# tag) isn't replaced by this test build. The tag always starts with ocl-load-test, even when
+# --instance is given. The image is removed at the end.
 export OPENMRS_IMAGE_NAME=partnersinhealth/zl-emr
-export OPENMRS_IMAGE_TAG="$INSTANCE"
+case "$INSTANCE" in
+  ocl-load-test*) export OPENMRS_IMAGE_TAG="$INSTANCE" ;;
+  *) export OPENMRS_IMAGE_TAG="ocl-load-test-$INSTANCE" ;;
+esac
 TEST_IMAGE="$OPENMRS_IMAGE_NAME:$OPENMRS_IMAGE_TAG"
 export OPENMRS_PIH_CONFIG="$PIH_CONFIG"
 export OPENMRS_DISTRO_DIR="$ZL_EMR_DIR"
