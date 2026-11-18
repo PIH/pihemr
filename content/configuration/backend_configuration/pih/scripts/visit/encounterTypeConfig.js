@@ -148,6 +148,19 @@ angular.module("encounterTypeConfig", [])
 
         };
 
+
+        var tbPlan = {
+            type: "encounter-section",
+            id: "pihcore-plan",
+            label: "pihcore.visitNote.plan",
+            icon: "fas fa-fw fa-flag-checkered",
+            shortTemplate: "templates/sections/primaryCarePlanSectionShort.page",
+            longTemplate: "templates/sections/viewPlanSectionWithHtmlFormLong.page",
+            templateModelUrl: "/htmlformentryui/htmlform/viewEncounterWithHtmlForm/getAsHtml.action?encounterId={{encounter.uuid}}&definitionUiResource=" + getFormResource("section-tb-plan.xml"),
+            editUrl: "/htmlformentryui/htmlform/editHtmlFormWithStandardUi.page?patientId={{visit.patient.uuid}}&visitId={{visit.uuid}}&encounterId={{encounter.uuid}}&definitionUiResource=" + getFormResource("section-tb-plan.xml") + "&returnUrl={{returnUrl}}&breadcrumbOverride={{breadcrumbOverride}}"
+
+        };
+
         // Sierra Leone has one Plan section used on it's Outpatient forms, and then a medication-only
         // plans section used on other forms, so we need a separate "medication plan" section for that
         var primaryCarePlanMedication = {
@@ -1178,7 +1191,7 @@ angular.module("encounterTypeConfig", [])
                 reviewOfSystems,
                 generalVaccinations,
                 primaryCareDx,
-                primaryCarePlan
+                tbPlan
             ]
         };
 
@@ -1196,7 +1209,7 @@ angular.module("encounterTypeConfig", [])
                 generalVaccinations,
                 pedsFoodAndSupplements,
                 primaryCareDx,
-                primaryCarePlan
+                tbPlan
             ]
         };
 
