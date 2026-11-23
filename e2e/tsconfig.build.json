@@ -1,0 +1,14 @@
+{
+  // Compiles src/ for publishing. Playwright does not compile files under node_modules, so the published package holds JavaScript (and .d.ts), laid out like
+  // the source: `@pih/pihemr-e2e/src/site` is `src/site.js` in it. See scripts/make-dist-package.mjs and the README ("Publishing").
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "outDir": "dist",
+    "rootDir": ".",
+    "declaration": true,
+    "sourceMap": true,
+    "inlineSources": true
+  },
+  "include": ["src/**/*.ts"]
+}

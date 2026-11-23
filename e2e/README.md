@@ -157,3 +157,31 @@ each test reports its location in the spec file in pihemr, which opens when you 
 Write it in `src/specs/<form>.spec.ts` like any Playwright spec, importing `test` and `expect` from `../fixtures/test`, and ask only for fixtures
 that exist there. When a spec needs a fact about the site, first try to read it from the server (as `getEncounterLocation` does); add a field to
 `SiteSettings` only when the server cannot tell. Run `npm install && npm run typecheck` in this directory.
+
+## Publishing
+
+`@pih/pihemr-e2e` is published to npm by `.github/workflows/publish-e2e.yml` (in the pihemr repo root). The package is **compiled**: Playwright does not compile
+TypeScript that is under `node_modules`, so a package that holds `.ts` would not load there. `npm run build` writes it to `dist/`:
+
+| In the published package | What |
+|---|---|
+| `src/**/*.js`, `*.d.ts` | The compiled code, laid out like `src/` here, so `@pih/pihemr-e2e/src/site`, `/src/pages`, ... keep working with the distros' `moduleResolution: node`. The specs are `src/specs/*.spec.js`; `includeSpecs()` takes either form. |
+| `source/**/*.ts` | The original sources. The source maps point here, so that a click on a test in the VS Code extension opens its `.ts` file. |
+| `package.json`, `README.md` | Written by `scripts/make-dist-package.mjs` (the version is `PIHEMR_E2E_VERSION`, else the one in this directory's `package.json`, which stays `0.0.0`). |
+
+When it publishes:
+
+- **A push to `master` that changes `e2e/`:** `<pihemr version>-pre.<run number>` (for example `3.7.0-pre.42`), under the npm tag `next`.
+- **A pihemr release** ("Release new version" finished): the version of the newest `X.Y.Z` tag, under `latest`.
+- **By hand** (Actions → *Publish e2e package* → Run workflow): the tag you give, as a release. A version that is already on npm is skipped.
+
+A distro then depends on the version of pihemr that its `distro/pom.xml` pins (`"@pih/pihemr-e2e": "3.7.0"`) instead of `file:../../pihemr/e2e`.
+
+**Once, before the workflow can publish** (it uses npm trusted publishing, so no token is stored):
+
+1. Someone with rights on the `@pih` scope publishes a first version by hand (`npm run build`, then `npm publish ./dist --access public` from this directory),
+   because npmjs.com offers a trusted publisher only for a package that exists.
+2. On npmjs.com, *@pih/pihemr-e2e → Settings → Trusted publisher*: GitHub Actions, organization `PIH`, repository `pihemr`, workflow `publish-e2e.yml`.
+
+To try the compiled package before publishing: `npm run build`, `npm pack ./dist`, and install the `.tgz` in a copy of a distro's `e2e/` (not `npm pack dist`, which means
+the package named "dist" on npm).

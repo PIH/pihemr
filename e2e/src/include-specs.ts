@@ -17,17 +17,28 @@ export interface IncludeSpecsOptions {
 
 const specsDir = path.join(__dirname, 'specs');
 
+// The spec files are `.spec.ts` when the package is used from its source (a checkout of pihemr, linked with `file:`), and `.spec.js` (next to `.spec.d.ts`
+// and `.spec.js.map`) in the published package, which holds the compiled output: Playwright does not compile files under node_modules.
+const SPEC_FILE = /\.spec\.(ts|js)$/;
+const isSpecFile = (file: string): boolean => SPEC_FILE.test(file) && !file.endsWith('.d.ts');
+
 function specNames(dir: string, prefix = ''): string[] {
   const names: string[] = [];
   for (const entry of fs.readdirSync(dir, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
     if (entry.isDirectory()) {
       names.push(...specNames(path.join(dir, entry.name), prefix + entry.name + '/'));
-    } else if (entry.name.endsWith('.spec.ts')) {
-      names.push(prefix + entry.name.slice(0, -'.spec.ts'.length));
+    } else if (isSpecFile(entry.name)) {
+      names.push(prefix + entry.name.replace(SPEC_FILE, ''));
     }
   }
   return names;
 }
+
+// The file of the spec `name`, whichever of the two forms the package is in.
+const specFile = (name: string): string => {
+  const base = path.join(specsDir, name);
+  return fs.existsSync(base + '.spec.ts') ? base + '.spec.ts' : base + '.spec.js';
+};
 
 /**
  * Registers the specs of this package in the file that calls it. Call it from a `*.spec.ts` file in the config repo's `testDir`: Playwright
@@ -63,7 +74,7 @@ export function includeSpecs(options: IncludeSpecsOptions = {}): void {
       });
       continue;
     }
-    require(path.join(specsDir, name + '.spec.ts'));
+    require(specFile(name));
   }
 }
 
