@@ -4,7 +4,7 @@ import type { SiteSettings } from './contract';
 // loaded by playwright.config.ts). A config repo (zl-emr, pihsl-emr, ...) describes its site itself, in its core/site.ts, and does not use this.
 // Loads no Playwright code.
 //
-// Start from the sample of the site: `zl.env` (Haiti) or `sierra-leone.env` have the metadata of that site's configuration filled in. Copy one to `.env` and
+// Start from the sample of the site: `zl.env` (Haiti) or `pihsl.env` have the metadata of that site's configuration filled in. Copy one to `.env` and
 // add the server and the user.
 //   E2E_BASE_URL                         e.g. http://localhost:7070/openmrs
 //   E2E_USER_ADMIN_USERNAME / E2E_USER_ADMIN_PASSWORD
@@ -17,7 +17,7 @@ import type { SiteSettings } from './contract';
 const required = (env: NodeJS.ProcessEnv, name: string): string => {
   const value = env[name];
   if (!value) {
-    throw new Error(`${name} is not set: copy zl.env or sierra-leone.env to .env and fill it in (see README.md)`);
+    throw new Error(`${name} is not set: copy zl.env or pihsl.env to .env and fill it in (see README.md)`);
   }
   return value;
 };

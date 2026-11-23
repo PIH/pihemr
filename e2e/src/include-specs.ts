@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { currentProfile, findForm, loadAvailability } from './availability';
-import { test } from './fixtures/test';
+import { currentProfile, findForm, loadAvailability, setAvailabilityStartDir } from './availability';
+import { test } from '@playwright/test';
 
 export interface IncludeSpecsOptions {
   /** Run only these specs, named by their file without `.spec.ts` (`patientRegistration-rs`). */
@@ -44,7 +44,7 @@ const specFile = (name: string): string => {
  * Registers the specs of this package in the file that calls it. Call it from a `*.spec.ts` file in the config repo's `testDir`: Playwright
  * and the VS Code extension find tests only in the files of the `testDir`, and this is the one file that takes the shared specs there.
  *
- *   // e2e/specs/shared/shared.spec.ts
+ *   // e2e/specs/shared/pihemr.spec.ts
  *   import { includeSpecs } from '@pih/pihemr-e2e/src/include-specs';
  *   includeSpecs();   // or includeSpecs({ except: ['somethingThisSiteLacks'] })
  *
@@ -54,6 +54,8 @@ const specFile = (name: string): string => {
  * error, so that a renamed or misspelled spec does not drop out of a run unnoticed.
  */
 export function includeSpecs(options: IncludeSpecsOptions = {}): void {
+  // The config repo's JSON is found from the file that calls this (its parent module), whatever the working directory is.
+  setAvailabilityStartDir(path.dirname(module.parent?.filename ?? process.cwd()));
   const all = specNames(specsDir);
   for (const name of [...(options.only ?? []), ...(options.except ?? []), ...(options.runUnoffered ?? [])]) {
     if (!all.includes(name)) {
@@ -69,13 +71,32 @@ export function includeSpecs(options: IncludeSpecsOptions = {}): void {
     }
     const unoffered = options.runUnoffered?.includes(name) ? undefined : notOffered(name);
     if (unoffered) {
+      // One placeholder in the list, so that the skip is visible. It is a test that runs (it needs no fixtures: no browser, no site settings) and skips
+      // itself, and not a test declared as skipped: a declared skip never runs, so it reports no output and nothing says why, in the VS Code extension
+      // as well as in the terminal. This one prints the reason, and it is the skip's annotation in the report.
       test.describe(name, () => {
-        test.skip(unoffered, () => {});
+        // eslint-disable-next-line no-empty-pattern -- Playwright requires a destructuring pattern as the first argument
+        test(unoffered, async ({}, testInfo) => {
+          const others = profilesOffering(name);
+          const elsewhere = others.length ? `set E2E_PROFILE to one that offers it (${others.join(', ')}), or ` : '';
+          console.log(`${unoffered}\nTo run it anyway: ${elsewhere}includeSpecs({ runUnoffered: ['${name}'] }) in the spec file that calls it.`);
+          testInfo.skip(true, unoffered);
+        });
       });
       continue;
     }
     require(specFile(name));
   }
+}
+
+// The profiles of the site that offer the form `name` (for the hint a skipped spec prints).
+function profilesOffering(name: string): string[] {
+  const availability = loadAvailability();
+  const form = availability && findForm(availability, name);
+  if (!availability || !form) {
+    return [];
+  }
+  return Object.keys(availability.profiles).filter((profile) => form.entry.offered[profile] !== false);
 }
 
 // The reason to skip the spec of the form `name`, when the site's availability data says the profile of the run does not offer it.

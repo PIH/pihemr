@@ -8,7 +8,7 @@ import { type Page } from '@playwright/test';
 // the first provider is chosen instead (selectOption would wait for the missing option until the test times out).
 export const selectDefaultProvider = async (page: Page, providerName: string | undefined = process.env.E2E_DEFAULT_PROVIDER_NAME): Promise<void> => {
   if (!providerName) {
-    throw new Error('E2E_DEFAULT_PROVIDER_NAME is not set (see zl.env / sierra-leone.env): the form needs a provider to save');
+    throw new Error('E2E_DEFAULT_PROVIDER_NAME is not set (see zl.env / pihsl.env): the form needs a provider to save');
   }
   const select = page.locator('#who select').first();
   // encounter-provider-location-date.xml disables the select for a user without "Task: emr.retroConsultNote": the

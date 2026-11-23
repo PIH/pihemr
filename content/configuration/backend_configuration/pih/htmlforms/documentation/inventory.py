@@ -609,9 +609,9 @@ def e2e_up_to_date(xml, e2e):
 
 
 def shared_specs():
-    """Specs of pihemr's e2e/src/specs that this site runs: the site's specs/shared/shared.spec.ts calls includeSpecs(), optionally with only / except lists."""
+    """Specs of pihemr's e2e/src/specs that this site runs: the site's specs/shared/pihemr.spec.ts calls includeSpecs(), optionally with only / except lists."""
     shared_dir = os.path.join(os.path.abspath(os.path.join(HERE, *(['..'] * 6))), 'e2e', 'src', 'specs')
-    site_file = os.path.join(ARGS.specs_dir, 'shared', 'shared.spec.ts')
+    site_file = os.path.join(ARGS.specs_dir, 'shared', 'pihemr.spec.ts')
     if not (os.path.isdir(shared_dir) and os.path.exists(site_file)):
         return set()
     names = {f[:-len('.spec.ts')] for f in os.listdir(shared_dir) if f.endswith('.spec.ts')}

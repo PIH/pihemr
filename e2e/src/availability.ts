@@ -52,10 +52,35 @@ export interface Availability {
   forms: Record<string, AvailabilityEntry>;
 }
 
-const DEFAULT_RELATIVE = path.join('..', 'content', 'configuration', 'backend_configuration', 'pih', 'htmlforms', 'documentation', '_availability.e2e.json');
+const RELATIVE = path.join('content', 'configuration', 'backend_configuration', 'pih', 'htmlforms', 'documentation', '_availability.e2e.json');
 
-// The JSON of the config repo whose `e2e` directory the run starts in, or the file named by E2E_AVAILABILITY_FILE.
-export const availabilityFile = (): string => process.env.E2E_AVAILABILITY_FILE ?? path.resolve(process.cwd(), DEFAULT_RELATIVE);
+// Where the search for the JSON starts. It is the directory of the spec file that calls includeSpecs() (a config repo's `e2e/specs/shared/`), and not the
+// working directory: the VS Code extension runs from the folder that was opened, which may be the repo root and not its `e2e` directory, and a lookup that
+// depended on it found no JSON there, so that every spec ran, the ones the site does not offer as well.
+let startDir = process.cwd();
+export const setAvailabilityStartDir = (dir: string): void => {
+  startDir = dir;
+};
+
+// The nearest `content/.../_availability.e2e.json` in the start directory or above it (the config repo's own).
+const findUp = (from: string): string | undefined => {
+  let dir = path.resolve(from);
+  for (;;) {
+    const file = path.join(dir, RELATIVE);
+    if (fs.existsSync(file)) {
+      return file;
+    }
+    const parent = path.dirname(dir);
+    if (parent === dir) {
+      return undefined;
+    }
+    dir = parent;
+  }
+};
+
+// The JSON of the config repo that the spec files being run belong to, or the file named by E2E_AVAILABILITY_FILE. Without either (pihemr itself has none),
+// a path that does not exist: then nothing is skipped and nothing is checked.
+export const availabilityFile = (): string => process.env.E2E_AVAILABILITY_FILE ?? findUp(startDir) ?? path.resolve(startDir, RELATIVE);
 
 let cached: { file: string; value: Availability | undefined } | undefined;
 

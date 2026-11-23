@@ -21,7 +21,7 @@ issues a test patient's identifier, the visit and session locations, the provide
 identifier source for one (and a test fails when the server does not issue one), so it always has the format the site's identifier type expects.
 A spec only declares which fixtures it needs; it never names a site's uuid.
 
-| `playwright.config.ts`, `global-setup.ts`, `src/site-from-env.ts` | For running the specs from here (next section): the config, the login step, and the site read from `.env` (samples: `zl.env`, `sierra-leone.env`). |
+| `playwright.config.ts`, `global-setup.ts`, `src/site-from-env.ts` | For running the specs from here (next section): the config, the login step, and the site read from `.env` (samples: `zl.env`, `pihsl.env`). |
 
 ## Running the specs from pihemr (for anyone, in VS Code)
 
@@ -29,7 +29,7 @@ You need Node 22+ and the **Playwright Test for VS Code** extension. Once:
 
 1. In VS Code, *File → Open Folder…* and choose `pihemr/e2e`. (Open this folder, not the whole repo, so that the config and the specs are one workspace.)
 2. In a terminal there: `npm install`, then `npx playwright install chromium`.
-3. Copy the sample of your site to `.env`: `zl.env` (Haiti) or `sierra-leone.env`. It has the site's metadata filled in; set the server's URL, the user and
+3. Copy the sample of your site to `.env`: `zl.env` (Haiti) or `pihsl.env`. It has the site's metadata filled in; set the server's URL, the user and
    password, and the provider name. **Use a server with test data only**: the tests create synthetic patients ("AutoE Tester", ...) and void them afterwards.
 
 Then open the *Testing* sidebar (the flask icon). It lists the specs; click the play button next to a test or a spec, or the green play button in the
@@ -42,7 +42,7 @@ To add a site, add a sample `<site>.env` next to these with its metadata: the id
 on the server lists them), a location with the Visit Location tag, and the session location. The config repos still hold their own copy of these uuids in
 `core/constants.ts`.
 
-The same tests are also listed by the extension when you open a config repo (`zl-emr/e2e`, `pihsl-emr/e2e`), under `specs/shared/shared.spec.ts`;
+The same tests are also listed by the extension when you open a config repo (`zl-emr/e2e`, `pihsl-emr/e2e`), under `specs/shared/pihemr.spec.ts`;
 each test reports its location in the spec file in pihemr, which opens when you click it.
 
 ## Using the specs from a config repo
@@ -121,7 +121,7 @@ each test reports its location in the spec file in pihemr, which opens when you 
    `testDir`, so this is the file that brings the shared ones there):
 
    ```ts
-   // e2e/specs/shared/shared.spec.ts
+   // e2e/specs/shared/pihemr.spec.ts
    import { includeSpecs } from '@pih/pihemr-e2e/src/include-specs';
 
    includeSpecs();                                   // every spec in the package
@@ -131,7 +131,7 @@ each test reports its location in the spec file in pihemr, which opens when you 
 
    Specs are named by their file without `.spec.ts`. A spec added to the package runs in every repo that calls `includeSpecs()` without `only`, with no
    change in the repo, **unless the site does not offer the spec's form** (next paragraph); a name that matches no spec is an error, so a renamed spec does not drop out of a run unnoticed. Tests report their location in the
-   shared file, and appear in the Testing sidebar under `specs/shared/shared.spec.ts`. The repo keeps its single `chromium` project.
+   shared file, and appear in the Testing sidebar under `specs/shared/pihemr.spec.ts`. The repo keeps its single `chromium` project.
 
    **Which forms the site offers.** Most forms of pihemr exist on every server (the htmlforms of pihemr are merged into every distro), but each site offers only some
    of them to a user: a form is reachable only when the site's app configuration, the user's privileges, the session location's tags and the patient fit. The
