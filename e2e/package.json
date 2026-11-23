@@ -1,0 +1,22 @@
+{
+  "name": "@pih/pihemr-e2e",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Shared Playwright e2e specs, page objects and fixture contract for the forms defined in pihemr, run from each config repo (zl-emr, pihsl-emr, ...)",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {
+    "test": "playwright test",
+    "test:ui": "playwright test --ui",
+    "typecheck": "tsc -p ."
+  },
+  "peerDependencies": {
+    "@playwright/test": "^1.53.2"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.53.2",
+    "@types/node": "^22.20.3",
+    "dotenv": "^16.0.3",
+    "typescript": "^5.0.0"
+  }
+}

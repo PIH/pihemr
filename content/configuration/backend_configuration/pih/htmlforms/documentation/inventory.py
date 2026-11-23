@@ -21,6 +21,10 @@ Without --site-repo the repo this file sits in is the site (the old behaviour).
 *_Version3 / *_old copies and retired/ directories excluded) must have a spec (e2e/specs/<form>/<form>.spec.ts), or be
 named in a "Not reachable" or "Not covered" section of <site>/.../documentation/_availability.e2e.md. It also lists specs
 whose form no longer exists. Run it before declaring a spec run done, and in CI.
+
+--write-availability-json: writes <site>/.../documentation/_availability.e2e.json (what each profile offers, per form, as data: see the skill,
+"The same findings as data") from the merged directory and the tables of _availability.e2e.md. --check-coverage also checks that file (every form has an
+entry with the XML's formUuid; the forms offered by no profile are those of "Not reachable").
 """
 import argparse, csv, glob, json, os, re, sys, copy
 from collections import defaultdict, Counter
@@ -37,10 +41,14 @@ ap.add_argument('--check-coverage', action='store_true', help='check that every 
 ap.add_argument('--specs-dir', default=None, help='e2e specs directory (specs/<form>/<form>.spec.ts); default: <site repo>/e2e/specs')
 ap.add_argument('--only-changed', action='store_true', help='skip forms whose XML is unchanged since their e2e spec was last committed (git; uncommitted spec: XML not newer than it)')
 ap.add_argument('--availability-file', default=None, help='default: <site repo>/.../htmlforms/documentation/_availability.e2e.md')
+ap.add_argument('--write-availability-json', action='store_true', help='write _availability.e2e.json (offered per profile, form uuids, why not) from the merged directory and the tables of _availability.e2e.md; refuses to overwrite an existing file unless --force')
+ap.add_argument('--force', action='store_true', help='with --write-availability-json: overwrite an existing file (it loses the hand-written "entry" facts)')
+ap.add_argument('--availability-json', default=None, help='default: <site repo>/.../htmlforms/documentation/_availability.e2e.json')
+ap.add_argument('--default-profile', default=None, help='with --write-availability-json: the profile of the server the specs run on (default: the first profile column of the md)')
 ap.add_argument('--include', action='append', default=[], help='versioned form to inventory anyway (e.g. checkin_v3.5.xml); repeatable')
 ARGS = ap.parse_args()
-if not ARGS.out and not ARGS.check_coverage:
-    ap.error('--out is required (unless --check-coverage)')
+if not ARGS.out and not ARGS.check_coverage and not ARGS.write_availability_json:
+    ap.error('--out is required (unless --check-coverage or --write-availability-json)')
 
 SITE = os.path.abspath(ARGS.site_repo) if ARGS.site_repo else os.path.abspath(os.path.join(HERE, *(['..'] * 6)))
 SITE_PIH = os.path.join(SITE, 'content', 'configuration', 'backend_configuration', 'pih')
@@ -51,6 +59,8 @@ if ARGS.specs_dir is None:
     ARGS.specs_dir = os.path.join(SITE, 'e2e', 'specs')
 if ARGS.availability_file is None:
     ARGS.availability_file = os.path.join(SITE_DOC, '_availability.e2e.md')
+if ARGS.availability_json is None:
+    ARGS.availability_json = os.path.join(SITE_DOC, '_availability.e2e.json')
 
 FORMS = ARGS.forms_dir
 REPO = os.path.dirname(FORMS)  # .../pih
@@ -598,6 +608,36 @@ def e2e_up_to_date(xml, e2e):
     return os.path.getmtime(xml) <= os.path.getmtime(e2e)  # spec untracked or being edited
 
 
+def shared_specs():
+    """Specs of pihemr's e2e/src/specs that this site runs: the site's specs/shared/shared.spec.ts calls includeSpecs(), optionally with only / except lists."""
+    shared_dir = os.path.join(os.path.abspath(os.path.join(HERE, *(['..'] * 6))), 'e2e', 'src', 'specs')
+    site_file = os.path.join(ARGS.specs_dir, 'shared', 'shared.spec.ts')
+    if not (os.path.isdir(shared_dir) and os.path.exists(site_file)):
+        return set()
+    names = {f[:-len('.spec.ts')] for f in os.listdir(shared_dir) if f.endswith('.spec.ts')}
+    src = re.sub(r'(?m)^\s*//.*$', '', open(site_file, encoding='utf-8').read())  # not the examples in its comments
+    only = re.search(r"only:\s*\[([^\]]*)\]", src)
+    except_ = re.search(r"except:\s*\[([^\]]*)\]", src)
+    if only:
+        names &= set(re.findall(r"'([^']+)'", only.group(1)))
+    if except_:
+        names -= set(re.findall(r"'([^']+)'", except_.group(1)))
+    # includeSpecs() skips a spec whose form the site's _availability.e2e.json says no profile offers (unless runUnoffered names it): it is no spec of the site
+    if os.path.exists(ARGS.availability_json):
+        forms = json.load(open(ARGS.availability_json, encoding='utf-8')).get('forms', {})
+        run_unoffered = set(re.findall(r"'([^']+)'", (re.search(r"runUnoffered:\s*\[([^\]]*)\]", src) or [None, ''])[1]))
+        for name in list(names):
+            key = name if name in forms else next((k for k in forms if k.endswith('/' + name)), None)
+            offered = forms[key].get('offered') if key else None
+            if offered and not any(offered.values()) and name not in run_unoffered:
+                names.discard(name)
+    return names
+
+
+# specs that are not the spec of one form: the stub that includes the shared specs, and the shared spec that checks the visit page against _availability.e2e.json
+NON_FORM_SPECS = {'shared', 'form-reachability'}
+
+
 def check_coverage():
     """Every form of the merged htmlforms directory has a spec or is accounted for in _availability.e2e.md."""
     merged_forms = os.path.join(MERGED, 'htmlforms')
@@ -626,6 +666,7 @@ def check_coverage():
         for name in os.listdir(ARGS.specs_dir):
             if os.path.exists(os.path.join(ARGS.specs_dir, name, name + '.spec.ts')):
                 specs.add(name)
+    specs |= shared_specs()
     # forms named in the "Not reachable" / "Not covered" sections of the availability file
     listed = {'reachable': set(), 'covered': set()}
     if os.path.exists(ARGS.availability_file):
@@ -644,7 +685,7 @@ def check_coverage():
     not_reachable = {n for n in forms if n not in specs and n in listed['reachable']}
     not_covered = {n for n in forms if n not in specs and n not in not_reachable and n in listed['covered']}
     missing = sorted(n for n in forms if n not in specs and n not in not_reachable and n not in not_covered)
-    stale = sorted(n for n in specs if n not in forms and not n.startswith('_') and n not in versioned_names(roots))
+    stale = sorted(n for n in specs if n not in forms and not n.startswith('_') and n not in versioned_names(roots) and n not in NON_FORM_SPECS)
     print('%d forms in %s (+ %d versioned copies and %d retired, not counted): %d with a spec, %d listed as not reachable, %d listed as not covered, %d UNACCOUNTED'
           % (len(forms), ', '.join(roots), n_versioned, n_retired, sum(1 for n in forms if n in specs), len(not_reachable), len(not_covered), len(missing)))
     if missing:
@@ -670,6 +711,245 @@ def versioned_names(roots):
     return names
 
 
+def scan_merged_forms():
+    """The forms of the merged htmlforms directory (versioned copies, retired/ and documentation/ left out): {key: (absolute path, formUuid)}, key = path relative to htmlforms/ without .xml."""
+    merged_forms = os.path.join(MERGED, 'htmlforms')
+    root_dir = merged_forms if os.path.isdir(merged_forms) else FORMS
+    versioned = re.compile(r'_v\d|_Version\d|_old')
+    found = {}
+    for d, subdirs, files in os.walk(root_dir):
+        rel = os.path.relpath(d, root_dir)
+        parts = rel.split(os.sep)
+        if 'documentation' in parts or 'retired' in parts:
+            continue
+        for f in sorted(files):
+            if f.endswith('.xml') and not versioned.search(f):
+                path = os.path.join(d, f)
+                m = re.search(r'formUuid="([^"]+)"', open(path, encoding='utf-8').read(4000))
+                found[os.path.normpath(os.path.join(rel, f))[:-4]] = (path, m.group(1) if m else None)
+    return found
+
+
+def resolve_form(name, keys):
+    """The key of the merged form that a name in the md (`checkin`, `hiv/section-eid-plan`, or just `section-eid-plan`) means, or None."""
+    if name in keys:
+        return name
+    hits = [k for k in keys if k.endswith('/' + name)]
+    return hits[0] if len(hits) == 1 else None
+
+
+def md_tables(path):
+    """[(section heading, header cells, [row cells])] of every markdown table of the file."""
+    tables, heading, cur = [], '', None
+    for ln in open(path, encoding='utf-8'):
+        m = re.match(r'^#{1,6}\s+(.*)', ln)
+        if m:
+            heading, cur = m.group(1), None
+            continue
+        if ln.startswith('|'):
+            cells = [c.strip() for c in ln.strip().strip('|').split('|')]
+            if cur is None:
+                cur = (heading, cells, [])
+                tables.append(cur)
+            elif not all(re.fullmatch(r':?-{3,}:?', c) for c in cells):
+                cur[2].append(cells)
+        else:
+            cur = None
+    return tables
+
+
+def yes_no(cell):
+    """True / False for a yes-no cell of a profile column ('y', 'yes', '**n**', '.', 'none'), None when it is anything else."""
+    t = re.sub(r'[*`_]', '', cell).strip().lower()
+    m = re.match(r'(yes|y|no|n|none|\.|-|\u2013)(?![a-z])', t)
+    if not m:
+        return None
+    return m.group(1) in ('yes', 'y')
+
+
+def entry_from_cells(offered_by, tag_cell, patient_cell):
+    """The `entry` of a form from its row of the Forms table: how a user gets to it. Only what the cells say; what cannot be read is left out (the reachability
+    spec then does not check that part). Returns a dict (kind visit-action, or other)."""
+    clean = lambda t: re.sub(r'[*`]', '', t or '').strip()
+    offered_by, tag_cell, patient_cell = clean(offered_by), clean(tag_cell), clean(patient_cell)
+    low_pat = patient_cell.lower()
+    if not re.search(r'\w', offered_by):
+        return None  # "-" under "Offered by": no app-loader entry (a section pencil, say): nothing to check, and nothing to guess
+    low_off = offered_by.lower()
+    if 'not an entry form' in low_off or 'edit only' in low_off:
+        return {'kind': 'section', 'note': 'a pencil or print action on a saved encounter'} if re.search(r'\bsection\b', low_off) else {'kind': 'other', 'note': 'not an entry form: see the md row'}
+    if 'overall action' in low_off:
+        return {'kind': 'other', 'note': 'an overall action of the patient dashboard, not a visit action'}
+    # a cell that names the visit action's own requirement ("visit action: ...; awaiting list: the patient must be on the list") is about the visit action first
+    own_visit_action = 'visit action:' in low_pat and re.search(r'visit[ _]action', low_off)
+    if not own_visit_action and re.search(r'\b(?:an|the) existing\b|patient with an? (?:active|completed)|must be on the list|patient on the (?:awaiting|list)|person\.dead|\bdead\b|visit has (?!neither|none\b|no\b|not\b)', low_pat):
+        return {'kind': 'other', 'note': 'needs a patient with earlier data (%s): the reachability spec builds a fresh patient' % patient_cell[:80]}
+    only_home_app = re.search(r'home app|homepage', offered_by, re.I) and not re.search(r'visit[ _]action|_ACTION|\baction\b', offered_by)
+    if re.search(r'\bno visit\b', low_pat) or only_home_app or re.search(r'registrationapp|registration summary|most recent registration', offered_by, re.I) and not re.search(r'visit[ _]action', offered_by, re.I):
+        return {'kind': 'other', 'note': 'not a visit action: see the Offered by cell of the md row'}
+    entry = {'kind': 'visit-action'}
+    m = None if re.match(r'(none|[-\u2013])', tag_cell, re.I) else re.search(r'([A-Z][\w\-]*(?: [\w\-]+){0,4}? Location)\b', tag_cell)
+    if m:
+        entry['sessionTag'] = m.group(1)
+    patient = {}
+    if re.search(r'\bfemale\b', low_pat):
+        patient['gender'] = 'F'
+    m = re.search(r'\bage\s*>=?\s*(\d+)\b(?!\s*days)', low_pat)
+    if m:
+        patient['ageYears'] = max(30, int(m.group(1)) + 1)
+    m = re.search(r'\bage\s*(\d+)\s*-\s*(\d+)\b', low_pat)
+    if m and 'ageYears' not in patient:
+        patient['ageYears'] = (int(m.group(1)) + int(m.group(2))) // 2
+    m = re.search(r'\bage\s*<\s*(\d+)\s*days', low_pat)
+    if m:
+        patient['ageDays'] = int(m.group(1)) // 2
+    m = re.search(r'fullmonthsbetweendates\([^)]*\)\s*<\s*(\d+)', low_pat)
+    if m and 'ageDays' not in patient:
+        patient['ageYears'] = max(1, int(m.group(1)) // 24)  # half the limit, in years
+    m = re.search(r'\bage\s*<\s*(\d+)\s*(?:years|yrs)', low_pat)
+    if m and 'ageDays' not in patient:
+        patient['ageYears'] = max(1, int(m.group(1)) // 2)
+    if patient:
+        entry['patient'] = patient
+    return entry
+
+
+def profile_key(header):
+    """The name of a profile from its column header: `central (zl-ci)` is `central` (the alias goes in the description; it is awkward as an E2E_PROFILE value)."""
+    return re.sub(r'\s*\(.*?\)', '', header).strip() or header
+
+
+def write_availability_json():
+    """_availability.e2e.json: what the site offers, per profile, as data (README of @pih/pihemr-e2e; the skill says how it is kept)."""
+    if os.path.exists(ARGS.availability_json) and not ARGS.force:
+        print('%s exists: it holds hand-written "entry" facts. Use --force to overwrite it.' % ARGS.availability_json, file=sys.stderr)
+        return 1
+    forms = scan_merged_forms()
+    keys = list(forms)
+    tables = md_tables(ARGS.availability_file)
+    offered = {k: {} for k in keys}
+    profiles = []
+    reasons, not_covered, entries, profile_columns = {}, {}, {}, {}
+    for heading, header, rows in tables:
+        h = heading.lower()
+        if not rows or not re.fullmatch(r'(form|section)( file)?', header[0].lower()):
+            continue
+        is_section_table = header[0].lower().startswith('section') or 'section' in h
+        if 'not reachable' in h or 'not covered' in h or 'to spec' in h:
+            for cells in rows:
+                for name in re.findall(r'([\w.\-/]+)\.xml', cells[0]):
+                    key = resolve_form(name, keys)
+                    if key is None:
+                        continue
+                    if 'not reachable' in h:
+                        reasons[key] = (cells[2] if len(cells) > 2 else '', cells[3] if len(cells) > 3 else '')
+                    elif 'not covered' in h:
+                        not_covered[key] = cells[1] if len(cells) > 1 else ''
+            continue
+        cols = [i for i in range(1, len(header)) if all(yes_no(r[i]) is not None for r in rows if i < len(r) and r[i].strip()) and any(i < len(r) and r[i].strip() for r in rows)]
+        for i in cols:
+            if profile_key(header[i]) not in profiles:
+                profiles.append(profile_key(header[i]))
+                profile_columns[profile_key(header[i])] = header[i]
+        find = lambda pat: next((i for i, x in enumerate(header) if re.search(pat, x, re.I)), None)
+        i_offer, i_tag, i_pat = find(r'offered by'), find(r'session location tag'), find(r'patient.*requirement')
+        for cells in rows:
+            for name in re.findall(r'([\w.\-/]+\.xml)', cells[0]):
+                key = resolve_form(name[:-4], keys)
+                if key is None:
+                    continue
+                if key not in entries:
+                    if is_section_table:
+                        entries[key] = {'kind': 'section'}
+                    elif i_tag is not None and i_pat is not None and i_tag < len(cells) and i_pat < len(cells):
+                        entries[key] = entry_from_cells(cells[i_offer] if i_offer is not None and i_offer < len(cells) else '', cells[i_tag], cells[i_pat])
+                if offered[key]:
+                    continue
+                for i in cols:
+                    if i < len(cells) and cells[i].strip():
+                        offered[key][profile_key(header[i])] = yes_no(cells[i])
+    if not profiles:
+        profiles = ['default']
+    for key in reasons:
+        offered[key] = {p: False for p in profiles}
+    default = ARGS.default_profile or profiles[0]
+    if default not in profiles:
+        print('--default-profile %s is not a profile column of the md: %s' % (default, ', '.join(profiles)), file=sys.stderr)
+        return 1
+    out = {'schema': 1, 'site': os.path.basename(SITE), 'defaultProfile': default,
+           'profiles': {p: 'column "%s" of _availability.e2e.md: describe the stacks and servers' % profile_columns.get(p, p) for p in profiles}, 'forms': {}}
+    for key in keys:
+        path, uuid = forms[key]
+        e = {'formUuid': uuid, 'path': key + '.xml', 'offered': offered[key]}
+        if key in reasons:
+            e['reason'], e['detail'] = reasons[key]
+        if key in not_covered:
+            e['notCovered'] = not_covered[key]
+        if entries.get(key) and key not in reasons:
+            e['entry'] = entries[key]
+        elif key not in reasons and os.path.basename(key).startswith('section-'):
+            e['entry'] = {'kind': 'section'}
+        out['forms'][key] = e
+    if os.path.exists(ARGS.availability_json):  # --force: keep the descriptions somebody wrote
+        old = json.load(open(ARGS.availability_json, encoding='utf-8')).get('profiles', {})
+        out['profiles'] = {p: old.get(p, out['profiles'][p]) for p in out['profiles']}
+    json.dump(out, open(ARGS.availability_json, 'w', encoding='utf-8'), indent=2, ensure_ascii=False)
+    open(ARGS.availability_json, 'a').write('\n')
+    unstated = [k for k in keys if not offered[k]]
+    n_action = sum(1 for e in out['forms'].values() if e.get('entry', {}).get('kind') == 'visit-action')
+    n_no_tag = sum(1 for e in out['forms'].values() if e.get('entry', {}).get('kind') == 'visit-action' and 'sessionTag' not in e['entry'])
+    print('%s: %d forms, %d not reachable, %d with an offered-flag per profile (%s), %d not stated (they run); %d visit actions (%d without a session tag: check them), %d sections' %
+          (ARGS.availability_json, len(keys), len(reasons), len(keys) - len(unstated) - len(reasons), ', '.join(profiles), len(unstated), n_action, n_no_tag,
+           sum(1 for e in out['forms'].values() if e.get('entry', {}).get('kind') == 'section')))
+    return 0
+
+
+def check_availability_json():
+    """_availability.e2e.json agrees with the merged directory and with the md. Returns the number of problems."""
+    if not os.path.exists(ARGS.availability_json):
+        print('WARNING: %s not found: write it with --write-availability-json (the shared specs then skip what the profile does not offer)' % ARGS.availability_json, file=sys.stderr)
+        return 0
+    data = json.load(open(ARGS.availability_json, encoding='utf-8'))
+    forms = scan_merged_forms()
+    problems = []
+    for key in sorted(forms):
+        if key not in data['forms']:
+            problems.append('form %s.xml has no entry in the JSON' % key)
+        elif data['forms'][key].get('formUuid') != forms[key][1]:
+            problems.append('%s: formUuid %s in the JSON, %s in the XML' % (key, data['forms'][key].get('formUuid'), forms[key][1]))
+    for key in sorted(data['forms']):
+        if key not in forms:
+            problems.append('the JSON has %s, which is not a form of the merged directory (renamed, retired?)' % key)
+    if data.get('defaultProfile') not in data.get('profiles', {}):
+        problems.append('defaultProfile %s is not one of the profiles' % data.get('defaultProfile'))
+    for key, e in data['forms'].items():
+        for p in e.get('offered', {}):
+            if p not in data.get('profiles', {}):
+                problems.append('%s: offered names the profile %s, which is not in profiles' % (key, p))
+    # the md's "Not reachable" table and the JSON must name the same forms
+    md_not = set()
+    for heading, header, rows in md_tables(ARGS.availability_file):
+        if 'not reachable' in heading.lower() and re.fullmatch(r'form( file)?', header[0].lower()):
+            for cells in rows:
+                for name in re.findall(r'([\w.\-/]+)\.xml', cells[0]):
+                    k = resolve_form(name, list(forms))
+                    if k:
+                        md_not.add(k)
+    json_not = {k for k, e in data['forms'].items() if e.get('offered') and not any(e['offered'].values())}
+    for k in sorted(md_not - json_not):
+        problems.append('%s is in "Not reachable" of the md, but the JSON offers it (or does not say)' % k)
+    for k in sorted(json_not - md_not):
+        problems.append('%s is offered by no profile in the JSON, but is not in "Not reachable" of the md' % k)
+    for p in problems:
+        print('AVAILABILITY JSON:', p)
+    print('%s: %d forms, %d problem(s)' % (ARGS.availability_json, len(data['forms']), len(problems)))
+    return len(problems)
+
+
+if ARGS.write_availability_json:
+    sys.exit(write_availability_json())
 if ARGS.check_coverage:
-    sys.exit(check_coverage())
+    rc = check_coverage()
+    problems = check_availability_json()  # both always run: a failure of the first must not hide the second
+    sys.exit(1 if (rc or problems) else 0)
 main()
