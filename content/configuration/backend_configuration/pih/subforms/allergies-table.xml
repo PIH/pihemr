@@ -1,0 +1,15 @@
+<div class="allergies-table-subform">
+    <subform path="configuration/pih/subforms/allergies-table.js"/>
+    <table class="allergies-table">
+        <thead>
+            <tr>
+                <th class="allergy-allergen-column"><uimessage code="allergyui.allergen" /></th>
+                <th class="allergy-reaction-column"><uimessage code="allergyui.reaction" /></th>
+                <th class="allergy-severity-column"><uimessage code="allergyui.severity" /></th>
+                <th class="allergy-comment-column"><uimessage code="allergyui.comment" /></th>
+                <th class="allergy-last-updated-column"><uimessage code="allergyui.lastUpdated" /></th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
