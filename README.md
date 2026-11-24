@@ -185,8 +185,7 @@ Components are defined in [pihcore/.../config/Components.java](https://github.co
 - **visitManagement**: Adds Start Visit, Add Past Visits, and Merge Visits links to general actions.
 - **visitNote**: A different UI for the visit dashboard, which supports form sections.
 - **vitals**: Enables the vitals htmlform as a visit action. Adds Most Recent Vitals app to pt dashboard.
-- **vitalsHomepageApp**: Deprecated; use vitalsHomepageListApp, which it means the same as.
-- **vitalsHomepageListApp**: Adds the Vitals app button to the home page: a list of patients checked in
+- **vitalsHomepageApp**: Adds the Vitals app button to the home page: a list of patients checked in
   today who have no vitals yet. Requires vitals component.
 - **vitalsHomepageSearchApp**: Adds the Vitals app button to the home page: find a patient, then enter
   their vitals. Requires vitals component.
