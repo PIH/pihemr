@@ -179,16 +179,17 @@ Components are defined in [pihcore/.../config/Components.java](https://github.co
   Merge Patient Electronic Records, and Advanced Features. Requires privilege `emr.systemAdministration`.
 - **tb**: Tuberculosis intake form.
 - **todaysVisits**: Adds the "Active Visits" app to the homepage. It lists the visits from that day.
-- **uhmVitals**: Custom vitals app used in Mirebalais. Don't worry about it.
 - **vaccination**: Adds htmlform called "vaccination-only" to visit actions. Requires Vaccination location tag.
   Requires `visitNote`.
 - **vct**: Adds Voluntary Counseling and Testing (for HIV) htmlform as visit action.
 - **visitManagement**: Adds Start Visit, Add Past Visits, and Merge Visits links to general actions.
 - **visitNote**: A different UI for the visit dashboard, which supports form sections.
-- **vitals**: Enables the vitals htmlform as a visit action. Adds the cyclical Vitals app button to the
-  home page. Adds Most Recent Vitals app to pt dashboard.
-- **vitalsHomepageApp**: Adds the cyclical Vitals app button to the
-    home page. Requires vitals component.
+- **vitals**: Enables the vitals htmlform as a visit action. Adds Most Recent Vitals app to pt dashboard.
+- **vitalsHomepageApp**: Deprecated; use vitalsHomepageListApp, which it means the same as.
+- **vitalsHomepageListApp**: Adds the Vitals app button to the home page: a list of patients checked in
+  today who have no vitals yet. Requires vitals component.
+- **vitalsHomepageSearchApp**: Adds the Vitals app button to the home page: find a patient, then enter
+  their vitals. Requires vitals component.
 - **waitingForConsult**: Adds the Consult Queues app button to the home page. List of patients who are
   checked in and have had their vitals taken, but have not yet had a consult. On ci.pih-emr.org
 - **wristbands**: Adds Print Wristbands to general actions.
