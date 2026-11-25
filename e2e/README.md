@@ -171,11 +171,11 @@ TypeScript that is under `node_modules`, so a package that holds `.ts` would not
 
 When it publishes:
 
-- **A push to `master` that changes `e2e/`:** `<pihemr version>-pre.<run number>` (for example `3.7.0-pre.42`), under the npm tag `next`.
+- **A push to `master` that changes `e2e/`:** `<pihemr version>-pre.<run number>` (for example `3.7.0-pre.42`), under the npm tag `latest`: the builds are rolling, so there is no separate `next`.
 - **A pihemr release** ("Release new version" finished): the version of the newest `X.Y.Z` tag, under `latest`.
 - **By hand** (Actions → *Publish e2e package* → Run workflow): the tag you give, as a release. A version that is already on npm is skipped.
 
-A distro then depends on the version of pihemr that its `distro/pom.xml` pins (`"@pih/pihemr-e2e": "3.7.0"`) instead of `file:../../pihemr/e2e`.
+A distro depends on it by version range in its `e2e/package.json` (`"@pih/pihemr-e2e": "^3.7.0-pre.1"`) instead of `file:../../pihemr/e2e`. A range of pre-releases only matches the pihemr version it names, so raise it when pihemr master moves to the next version (e.g. `3.8.0-pre.1`).
 
 **Once, before the workflow can publish** (it uses npm trusted publishing, so no token is stored):
 

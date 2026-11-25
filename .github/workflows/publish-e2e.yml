@@ -3,7 +3,7 @@ name: Publish e2e package
 # Publishes @pih/pihemr-e2e (e2e/) to npm, compiled: Playwright does not compile TypeScript under node_modules, so the package holds the JavaScript that
 # `npm run build` in e2e/ writes to e2e/dist/ (see e2e/README.md, "Publishing").
 #
-# - Push to master that changes e2e/: a pre-release, <pihemr version>-pre.<run number>, under the npm tag "next".
+# - Push to master that changes e2e/: a pre-release, <pihemr version>-pre.<run number>, under the npm tag "latest" (the builds are rolling, so there is no separate "next").
 # - A pihemr release ("Release new version" finished): the version of the tag it created (the newest X.Y.Z tag), under the npm tag "latest". It is a
 #   workflow_run trigger because the tag is pushed with the default GITHUB_TOKEN, and GitHub starts no workflow for a push or a Release made with it.
 # - By hand ("Run workflow"): a release of the tag you name, e.g. to publish a tag again after a failure. A version that is already on npm is skipped.
@@ -23,7 +23,7 @@ on:
   workflow_dispatch:
     inputs:
       release_tag:
-        description: 'Publish this tag (e.g. 3.7.0) as the release ("latest"). Leave empty to publish a pre-release of master ("next").'
+        description: 'Publish this tag (e.g. 3.7.0) as the release ("latest"). Leave empty to publish a pre-release of master (also "latest").'
         required: false
         type: string
 
@@ -68,7 +68,7 @@ jobs:
           else
             base=$(python3 -c "import xml.etree.ElementTree as ET; print(ET.parse('pom.xml').getroot().find('{http://maven.apache.org/POM/4.0.0}version').text)")
             version="${base%-SNAPSHOT}-pre.${GITHUB_RUN_NUMBER}"
-            npm_tag=next
+            npm_tag=latest
           fi
 
           if ! echo "$version" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+(-pre\.[0-9]+)?$'; then
