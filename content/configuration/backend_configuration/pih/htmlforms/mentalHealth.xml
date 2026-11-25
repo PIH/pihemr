@@ -732,11 +732,11 @@
 			<div class="col">
 				<p class="side-by-side">
 					<label>
-						<uimessage code="pihcore.mentalhealth.introspection" />
+						<uimessage code="pihcore.mentalhealth.insight" />
 					</label>
 					<br/>
 					<obs conceptId="CIEL:166051" style="radio"
-						 answerConceptIds="PIH:NORMAL,PIH:ABNORMAL" answerCodes="pihcore.normal.lc,pihcore.abnormal.lc" />
+						 answerConceptIds="PIH:NORMAL,PIH:Absent,PIH:21866" answerCodes="pihcore.normal.lc,pihcore.absent.lc" />
 				</p>
 			</div>
 			<div class="col">
@@ -744,21 +744,26 @@
 					<label>
 						<uimessage code="pihcore.mentalhealth.ThoughtContent" />
 					</label>
-					<obs conceptId="CIEL:167112" style="radio" answerSeparator="" />
+					<obs id="thoughtContent" conceptId="CIEL:167112" style="radio" answerConceptIds="PIH:13650,PIH:14158,PIH:14159,PIH:14119" 
+                    answerCodes="pihcore.mentalhealth.delusion,pihcore.mentalhealth.no.suicidal.ideation,pihcore.mentalhealth.no.homicidal.ideation" answerSeparator="">
+                    <controls>
+                    <when value="PIH:13650" thenDisplay="#delusionSpecify" />
+                    </controls>
+                     </obs>
 				</p>
+                <div id="delusionSpecify" >
+        <p>
+            <label>
+                <uimessage code="pihcore.mentalhealth.delusion.specify" />
+            </label>
+
+            <obs id="delusionDetails"
+                 conceptId="PIH:GENERAL FREE TEXT" />
+        </p>
+    </div>
 			</div>
 		</div>
 		<div class="section-container" id="radio_button_container">
-			<div class="col">
-				<p class="side-by-side">
-					<label>
-						<uimessage code="pihcore.mentalhealth.suicidal" />
-					</label>
-					<br/>
-					<obs conceptId="CIEL:125562" style="radio"
-						 answerConceptIds="PIH:YES,PIH:NO" answerCodes="yes,no" answerSeparator="" />
-				</p>
-			</div>
 			<div class="col">
 				<p class="side-by-side">
 					<label>
@@ -794,25 +799,28 @@
 		</div>
 
 		<div class="section-container" id="radio_button_container">
-			<div class="col">
-				<p class="side-by-side">
-					<label>
-						<uimessage code="pihcore.mentalhealth.danger" />
-					</label>
-					<br/>
-					<obs conceptId="PIH:15106" style="radio"
-						 answerConceptIds="PIH:YES,PIH:NO" answerCodes="yes,no" answerSeparator="" />
-				</p>
-			</div>
-			<div class="col">
+            <div class="col">
 				<p class="side-by-side">
 					<label>
 						<uimessage code="pihcore.mentalhealth.affect" />
 					</label>
 					<br/>
-					<obs conceptId="CIEL:167101" style="radio"
-						 answerConceptIds="PIH:NORMAL,PIH:ABNORMAL" answerCodes="pihcore.normal.lc,pihcore.abnormal.lc" />
+					<obs id="affect" conceptId="CIEL:167101" style="radio"
+						 answerConceptIds="PIH:NORMAL,PIH:ABNORMAL" answerCodes="pihcore.normal.lc,pihcore.abnormal.lc" >
+                         <controls>
+                            <when value="PIH:ABNORMAL" thenDisplay="#affectSpecify" />
+                        </controls>
+                        </obs>
+                    
 				</p>
+                  <div id="affectSpecify" >
+                        <label>
+                             <uimessage code="pihcore.mentalhealth.delusion.specify" />
+                        </label>
+                        <span >
+                           <obs conceptId="PIH:GENERAL FREE TEXT" id="affectDetails" />  
+                        </span>
+                    </div>
 			</div>
 		</div>
 		<div class="section-container" id="radio_button_container">
